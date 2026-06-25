@@ -19,6 +19,7 @@ import { AddHubModal } from "./components/AddHubModal";
 import { StatsBar } from "./components/StatsBar";
 import { PlaceholderView } from "./components/PlaceholderView";
 import { RouteLayer } from "./components/RouteLayer";
+import { ReportsView } from "./components/ReportsView";
 
 export default function App() {
   const [activeView, setActiveView]     = useState<ViewId>("map");
@@ -309,7 +310,9 @@ export default function App() {
             )}
 
             {activeView === "co2" && <PlaceholderView icon={BarChart2} title="CO₂ Statistics" desc="Charts and analytics coming soon" />}
-            {activeView === "reports" && <PlaceholderView icon={FileText} title="Reports" desc="Export and reporting tools coming soon" />}
+            {activeView === "reports" && (
+              <ReportsView completedTrips={completedTrips} />
+            )}
           </div>
 
           {/* Right panel */}
