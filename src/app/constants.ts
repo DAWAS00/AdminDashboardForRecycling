@@ -32,6 +32,16 @@ export const HUB_STATUS_CONFIG = {
   shipped:    { label: "Shipped",       color: "#1E40AF", bg: "#DBEAFE" },
 };
 
+// ── Delivery alert thresholds ─────────────────────────────────────────────────
+export const MATERIAL_DELIVERY_ESTIMATE_MS: Record<string, number> = {
+  "Cooking Oil":       20 * 60 * 1000,  // 20 min
+  "Plastic Bottles":   15 * 60 * 1000,  // 15 min
+  "Paper & Cardboard": 15 * 60 * 1000,  // 15 min
+  "Electronics":       25 * 60 * 1000,  // 25 min
+};
+export const IDLE_WARNING_MS  = 10 * 60 * 1000;  // 10 min → amber idle badge
+export const IDLE_CRITICAL_MS = 20 * 60 * 1000;  // 20 min → red idle badge + Alert Dot
+
 export const DISTRICTS: District[] = [
   {
     id: "downtown", name: "Downtown (Al-Balad)",
@@ -224,6 +234,7 @@ const rawRiders: Rider[] = [
     id: 4, name: "Khalid Nasser", nameAr: "خالد ناصر",
     phone: "+962 79 456 7890", lat: 31.9780, lng: 35.8820,
     status: "idle", vehicle: "Van", orders: [],
+    idleSince: Date.now() - (23 * 60 * 1000),
   },
   {
     id: 5, name: "Yousef Rami", nameAr: "يوسف رامي",
@@ -271,16 +282,35 @@ const rawRiders: Rider[] = [
     id: 10, name: "Imad Saleh", nameAr: "عماد صالح",
     phone: "+962 79 012 3456", lat: 32.0080, lng: 35.8780,
     status: "idle", vehicle: "Van", orders: [],
+    idleSince: Date.now() - (8 * 60 * 1000),
   },
 ];
 
 function seedOrderDates(riders: Rider[], date: string): Rider[] {
+  // Simulate orders accepted at specific times in the past.
+  // This makes timer badges meaningful on first load.
+  // Rami (ORD-2828) is seeded as critically overdue so the Alert Dot fires immediately.
+  const acceptedOffsets: Record<string, number> = {
+    "ORD-2841": 28 * 60 * 1000,  // Ahmad — Cooking Oil (20-min est.) → 1.4× → RED level 3
+    "ORD-2842":  5 * 60 * 1000,  // Ahmad — Plastic accepted → GREEN
+    "ORD-2835": 12 * 60 * 1000,  // Tariq — Paper (15-min est.) → 0.8× → AMBER level 2
+    "ORD-2836":  3 * 60 * 1000,  // Tariq — Plastic accepted → GREEN
+    "ORD-2830":  8 * 60 * 1000,  // Yousef — Electronics (25-min est.) → 0.32× → GREEN
+    "ORD-2828": 37 * 60 * 1000,  // Rami — Plastic (15-min est.) → 2.5× → CRITICAL level 4 ⚠️
+    "ORD-2820": 18 * 60 * 1000,  // Nidal — Paper (15-min est.) → 1.2× → RED level 3
+    "ORD-2821":  7 * 60 * 1000,  // Nidal — Electronics accepted → GREEN
+  };
+
   return riders.map(r => ({
     ...r,
     orders: r.orders.map(o => ({
       ...o,
-      createdAt: date,
+      createdAt:   date,
       completedAt: o.status === "completed" ? date : undefined,
+      acceptedAt:
+        (o.status === "inTransit" || o.status === "accepted") && acceptedOffsets[o.id]
+          ? Date.now() - acceptedOffsets[o.id]
+          : undefined,
     })),
   }));
 }
