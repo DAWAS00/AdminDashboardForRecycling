@@ -1,8 +1,9 @@
 import {
   Droplets, Package, Zap,
-  MapPin, Layers, Warehouse, BarChart2, FileText
+  MapPin, Layers, Warehouse, BarChart2, FileText,
+  Activity, TrendingUp, Wind, Users,
 } from "lucide-react";
-import { District, Hub, Order, Rider, ViewId } from "./types";
+import { District, Hub, Order, Rider, ViewId, Client, ClientType, ContractTier, ReportType } from "./types";
 
 export const MATERIAL_CONFIG = {
   "Cooking Oil":       { color: "#C8860A", bg: "#FEF3C7", Icon: Droplets, unit: "L"  },
@@ -25,6 +26,43 @@ export const ORDER_STATUS = {
 };
 
 export const ORDER_STATUS_ORDER: Order["status"][] = ["pending", "accepted", "inTransit", "completed"];
+
+// ── Partner tier display config ───────────────────────────────────────────────
+export const TIER_CONFIG: Record<ContractTier, {
+  label: string; color: string; bg: string; borderColor: string;
+}> = {
+  free:       { label: "Free",       color: "#64748B", bg: "#F1F5F9", borderColor: "#CBD5E1" },
+  basic:      { label: "Basic",      color: "#1E40AF", bg: "#DBEAFE", borderColor: "#BFDBFE" },
+  pro:        { label: "Pro",        color: "#1E5C35", bg: "#D1FAE5", borderColor: "#A7F3D0" },
+  enterprise: { label: "Enterprise", color: "#92400E", bg: "#FEF3C7", borderColor: "#FCD34D" },
+};
+
+// ── Partner pricing constants (Jordanian Dinar) ───────────────────────────────
+export const TIER_PRICES_JD: Record<ContractTier, { monthly: number; annual: number }> = {
+  free:       { monthly: 0,   annual: 0    },
+  basic:      { monthly: 30,  annual: 300  },
+  pro:        { monthly: 80,  annual: 800  },
+  enterprise: { monthly: 200, annual: 2000 },
+};
+
+// Ordered lowest → highest — used for tier progression UI
+export const TIER_ORDER: ContractTier[] = ["free", "basic", "pro", "enterprise"];
+
+// Minimum completed orders in last 30 days to qualify for each tier
+export const TIER_MONTHLY_THRESHOLDS: Record<ContractTier, number> = {
+  free: 0, basic: 3, pro: 10, enterprise: 25,
+};
+
+// 1 green point awarded per kg of material collected
+export const GREEN_POINTS_PER_KG = 1;
+
+// Perks displayed in the drawer Impact tab per tier
+export const TIER_BENEFITS: Record<ContractTier, string[]> = {
+  free:       ["Basic pickup scheduling", "Email support"],
+  basic:      ["Priority pickup", "Monthly CO₂ report", "Email + WhatsApp support"],
+  pro:        ["Same-day pickup", "Weekly CO₂ reports", "Certificate PDF", "Dedicated account manager"],
+  enterprise: ["On-demand pickup", "Custom reporting cadence", "CSRD-ready certificates", "Quarterly business review", "API access"],
+};
 
 export const HUB_STATUS_CONFIG = {
   collecting: { label: "Collecting",    color: "#1E5C35", bg: "#D1FAE5" },
@@ -419,6 +457,121 @@ function generateMetricHistory(): Record<"daily" | "weekly" | "monthly", Record<
 
 export const METRIC_HISTORY = generateMetricHistory();
 
+// ── B2B Mock Clients ─────────────────────────────────────────────────────────
+
+const baseClientOrders: Record<string, Order[]> = {
+  "fakhreddine": [
+    { id: "CLI-1001", material: "Cooking Oil",       quantity: 45, unit: "L",  address: "Downtown, Rainbow St", status: "completed", co2Saved: 38.5, earnings: 12.50, createdAt: "2026-06-22" },
+    { id: "CLI-1002", material: "Paper & Cardboard", quantity: 18, unit: "kg", address: "Downtown, Rainbow St", status: "completed", co2Saved: 22.0, earnings: 5.20,  createdAt: "2026-06-23" },
+  ],
+  "al-quds-hotel": [
+    { id: "CLI-2001", material: "Plastic Bottles", quantity: 32, unit: "kg", address: "Abdoun, Shmesani Bridge", status: "completed", co2Saved: 28.4, earnings: 9.60, createdAt: "2026-06-21" },
+    { id: "CLI-2002", material: "Cooking Oil",     quantity: 60, unit: "L",  address: "Abdoun, Shmesani Bridge", status: "inTransit", co2Saved: 48.0, earnings: 15.00, createdAt: "2026-06-24" },
+  ],
+  "ojeh": [
+    { id: "CLI-3001", material: "Electronics",      quantity: 8,  unit: "kg", address: "Sweifieh, Orchid St", status: "completed", co2Saved: 35.2, earnings: 18.00, createdAt: "2026-06-20" },
+    { id: "CLI-3002", material: "Plastic Bottles",  quantity: 25, unit: "kg", address: "Sweifieh, Orchid St", status: "completed", co2Saved: 21.5, earnings: 7.50, createdAt: "2026-06-22" },
+  ],
+  "zara-jo": [
+    { id: "CLI-4001", material: "Paper & Cardboard", quantity: 40, unit: "kg", address: "Sweifieh, Wakalat St", status: "completed", co2Saved: 34.0, earnings: 10.40, createdAt: "2026-06-23" },
+  ],
+  "istishari": [
+    { id: "CLI-5001", material: "Cooking Oil", quantity: 70, unit: "L", address: "Abdoun, Kullieh Circle", status: "completed", co2Saved: 58.0, earnings: 18.50, createdAt: "2026-06-21" },
+    { id: "CLI-5002", material: "Electronics", quantity: 12, unit: "kg", address: "Abdoun, Kullieh Circle", status: "completed", co2Saved: 48.0, earnings: 24.00, createdAt: "2026-06-24" },
+  ],
+};
+
+function buildClient(
+  id: string,
+  name: string,
+  nameAr: string,
+  type: ClientType,
+  address: string,
+  phone: string,
+  email: string,
+  tier: ContractTier,
+  joined: string,
+  extras: {
+    renewalDate: string;
+    billingCycle: "monthly" | "annual";
+    greenPoints: number;
+    customPriceJD?: number;
+    contractNotes?: string;
+    lastCertificateDownload?: string;
+    referredBy?: string;
+  }
+): Client {
+  const orders = baseClientOrders[id] ?? [];
+  return {
+    id, name, nameAr, type, address, phone, email,
+    contractTier: tier,
+    joinedDate: joined,
+    orders,
+    totalCo2Saved: orders.reduce((s, o) => s + o.co2Saved, 0),
+    totalEarnings: orders.reduce((s, o) => s + o.earnings, 0),
+    ...extras,
+  };
+}
+
+export const CLIENTS: Client[] = [
+  buildClient(
+    "fakhreddine", "Fakhreddine Restaurant", "مطعم فخر الدين",
+    "restaurant", "Downtown, Rainbow St", "+962 7 9012 3456", "ops@fakhreddine.jo",
+    "pro", "2025-02-14",
+    { renewalDate: "2026-08-14", billingCycle: "monthly", greenPoints: 450 }
+  ),
+  buildClient(
+    "al-quds-hotel", "Al-Quds Hotel", "فندق القدس",
+    "hotel", "Abdoun, Shmesani Bridge", "+962 7 8123 4567", "gm@alquds.com",
+    "enterprise", "2024-09-03",
+    {
+      renewalDate: "2026-09-03", billingCycle: "annual", greenPoints: 1240,
+      customPriceJD: 180,
+      contractNotes: "Preferred partner — custom SLA includes monthly CO₂ reporting. Key contact: GM Samer Khoury.",
+    }
+  ),
+  buildClient(
+    "ojeh", "Ojeh Electronics", "أوجيه للإلكترونيات",
+    "retail", "Sweifieh, Orchid St", "+962 7 7234 5678", "logistics@ojeh.jo",
+    "basic", "2025-05-20",
+    { renewalDate: "2026-06-20", billingCycle: "monthly", greenPoints: 45 }
+  ),
+  buildClient(
+    "zara-jo", "Zara Jordan", "زارا الأردن",
+    "retail", "Sweifieh, Wakalat St", "+962 7 6345 6789", "store@zara.jo",
+    "pro", "2024-11-12",
+    { renewalDate: "2026-07-12", billingCycle: "annual", greenPoints: 320, referredBy: "Fakhreddine Restaurant" }
+  ),
+  buildClient(
+    "istishari", "Istishari Hospital", "مستشفى استشاري",
+    "hospital", "Abdoun, Kullieh Circle", "+962 7 5456 7890", "waste@istishari.jo",
+    "enterprise", "2023-07-08",
+    {
+      renewalDate: "2026-07-08", billingCycle: "annual", greenPoints: 2100,
+      customPriceJD: 195,
+      lastCertificateDownload: "2026-06-20",
+      contractNotes: "CSRD compliance reporting required quarterly. Key contact: Dr. Nidal Mansour, Waste Mgmt Dept.",
+    }
+  ),
+];
+
+// ── B2B Report Templates ─────────────────────────────────────────────────────
+
+export const REPORT_TEMPLATES: {
+  id: ReportType;
+  title: string;
+  subtitle: string;
+  audience: "internal" | "client" | "executive";
+  icon: React.ComponentType<{ size: number }>;
+}[] = [
+  { id: "weekly-operations",     title: "Weekly Operations Summary", subtitle: "Riders, orders & CO₂ captured",       audience: "internal",   icon: BarChart2  },
+  { id: "hub-efficiency",        title: "Hub Efficiency Report",     subtitle: "Capacity, loads & collection cycles", audience: "internal",   icon: Warehouse  },
+  { id: "district-intelligence", title: "District Intelligence Brief", subtitle: "Priority areas & material gaps",    audience: "executive",  icon: MapPin     },
+  { id: "material-pulse",        title: "Material Market Pulse",     subtitle: "Volume trends by material type",      audience: "executive",  icon: Activity   },
+  { id: "expansion-opportunity", title: "Expansion Opportunity Map", subtitle: "Uncovered districts & hub gaps",      audience: "executive",  icon: TrendingUp },
+  { id: "co2-certificate",       title: "CO₂ Impact Certificate",    subtitle: "Client-branded impact proof",         audience: "client",     icon: Wind       },
+];
+
 export const ONLINE_COUNT = RIDERS.filter(r => r.status !== "idle").length;
 export const AMMAN_CENTER: [number, number] = [31.963, 35.905];
 
@@ -427,11 +580,11 @@ export const VAN_PATH  = "M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-
 export const HUB_PATH  = "M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35z";
 
 export const NAV_ITEMS: { icon: React.ComponentType<{ size: number }>; label: string; id: ViewId }[] = [
-  { icon: MapPin,    label: "Live Map",  id: "map"     },
-  { icon: Layers,    label: "Heat Map",  id: "heatmap" },
-  { icon: Warehouse, label: "Hubs",      id: "hubs"    },
-  { icon: BarChart2, label: "CO₂ Stats", id: "co2"     },
-  { icon: FileText,  label: "Reports",   id: "reports" },
+  { icon: MapPin,    label: "Live Map",  id: "map"      },
+  { icon: Layers,    label: "Heat Map",  id: "heatmap"  },
+  { icon: Warehouse, label: "Hubs",      id: "hubs"     },
+  { icon: Users,     label: "Partners",  id: "partners" },
+  { icon: FileText,  label: "Reports",   id: "reports"  },
 ];
 
 /** Layout constant — ALL panels use this width */
