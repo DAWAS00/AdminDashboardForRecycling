@@ -48,6 +48,7 @@ export function RiderPanel({
             isSelected={rider.id === selectedId}
             maxEarnings={maxEarnings}
             onSelect={onSelect}
+            activeRoute={activeRoute?.riderId === rider.id ? activeRoute : null}
           />
         ))}
       </div>
