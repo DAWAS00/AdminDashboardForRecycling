@@ -72,7 +72,7 @@ export interface District {
   materialBreakdown: MaterialBreakdown;
 }
 
-export type ViewId = "map" | "heatmap" | "hubs" | "co2" | "reports";
+export type ViewId = "map" | "heatmap" | "hubs" | "partners" | "reports";
 
 /** Heat Map view modes — replaces the three individual toggle booleans */
 export type HeatMapViewMode = "overview" | "demand" | "hubs";
@@ -96,10 +96,18 @@ export interface Client {
   phone: string;
   email: string;
   contractTier: ContractTier;
-  joinedDate: string; // ISO date
+  joinedDate: string;           // ISO date
   orders: Order[];
-  totalCo2Saved: number; // computed
-  totalEarnings: number; // computed
+  totalCo2Saved: number;        // computed
+  totalEarnings: number;        // computed
+  // ── Partner & Rewards fields ──────────────────────
+  renewalDate: string;          // ISO date of next contract renewal
+  billingCycle: "monthly" | "annual";
+  greenPoints: number;          // loyalty points earned (1 per kg recycled)
+  customPriceJD?: number;       // if set, overrides standard tier price (monthly JD)
+  contractNotes?: string;       // free-text admin notes
+  lastCertificateDownload?: string; // ISO date of last CO₂ certificate download
+  referredBy?: string;          // name of referring partner
 }
 
 /** Report template identifiers */
