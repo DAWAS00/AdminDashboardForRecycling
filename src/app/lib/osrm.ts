@@ -43,17 +43,18 @@ export async function fetchOsrmRoute(
   }
 }
 
+export const ARC_STEPS = 64;
+
 export function buildArcFallback(
   startLat: number, startLng: number,
   endLat: number,   endLng: number,
 ): Route {
-  const STEPS = 32;
   const midLat = (startLat + endLat) / 2 + 0.008;
   const midLng = (startLng + endLng) / 2;
 
   const coords: [number, number][] = [];
-  for (let i = 0; i <= STEPS; i++) {
-    const t = i / STEPS;
+  for (let i = 0; i <= ARC_STEPS; i++) {
+    const t = i / ARC_STEPS;
     const lat = (1-t)**2 * startLat + 2*(1-t)*t * midLat + t**2 * endLat;
     const lng = (1-t)**2 * startLng + 2*(1-t)*t * midLng + t**2 * endLng;
     coords.push([lat, lng]);
