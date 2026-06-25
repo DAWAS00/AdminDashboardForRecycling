@@ -82,6 +82,20 @@ export function LiveMapLayer({
     });
   }, [selectedId, riders, mapInstance]);
 
+  // When admin selects a rider, the map smoothly flies to that rider's position
+  useEffect(() => {
+    if (!mapInstance || selectedId === null) return;
+    const rider = riders.find(r => r.id === selectedId);
+    if (!rider) return;
+    // 100ms delay prevents firing on initial mount
+    const t = setTimeout(() => {
+      mapInstance.flyTo([rider.lat, rider.lng], 15, { duration: 0.8 });
+    }, 100);
+    return () => clearTimeout(t);
+    // Intentionally omit `riders` from deps — positions don't change during session
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId, mapInstance]);
+
   const selectedRider = selectedId !== null ? riders.find(r => r.id === selectedId) ?? null : null;
 
   return (
