@@ -37,6 +37,7 @@ export default function App() {
 
   const [activeRoute, setActiveRoute]       = useState<ActiveRoute | null>(null);
   const [completedTrips, setCompletedTrips] = useState<CompletedTrip[]>([]);
+  const [fleetRadar, setFleetRadar]         = useState(false);
 
   const handleRiderSelect  = useCallback((id: number) => setSelectedRider(p => p === id ? null : id), []);
   const handleRiderClose   = useCallback(() => setSelectedRider(null), []);
@@ -177,6 +178,23 @@ export default function App() {
             )}
           </div>
           <div className="flex items-center gap-4">
+            {/* Fleet Radar button */}
+            {activeView === "map" && (
+              <button
+                aria-label={fleetRadar ? "Disable fleet radar" : "Enable fleet radar"}
+                aria-pressed={fleetRadar}
+                onClick={() => setFleetRadar(r => !r)}
+                className="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors border"
+                style={{
+                  background: fleetRadar ? "var(--color-brand-600)" : "white",
+                  color: fleetRadar ? "white" : "var(--color-text-secondary)",
+                  borderColor: "var(--color-border)",
+                  cursor: "pointer",
+                }}
+              >
+                Fleet Radar
+              </button>
+            )}
             {/* Add Hub button */}
             {activeView === "hubs" && (
               <button
@@ -215,6 +233,7 @@ export default function App() {
                   activeRoute={activeRoute}
                   onAnimationStep={handleAnimationStep}
                   onAnimationComplete={handleAnimationComplete}
+                  fleetRadar={fleetRadar}
                 />
                 {/* Status pills */}
                 <div className="absolute top-3 left-3 z-[500] flex gap-2 flex-wrap">

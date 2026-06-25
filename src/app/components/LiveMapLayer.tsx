@@ -4,6 +4,7 @@ import { Rider, ActiveRoute } from "../types";
 import { AMMAN_CENTER, STATUS_CONFIG } from "../constants";
 import { makeRiderIcon } from "../helpers";
 import { RouteLayer } from "./RouteLayer";
+import { FleetRadarLayer } from "./FleetRadarLayer";
 
 interface LiveMapLayerProps {
   riders: Rider[];
@@ -12,11 +13,13 @@ interface LiveMapLayerProps {
   activeRoute: ActiveRoute | null;
   onAnimationStep: (coordIndex: number) => void;
   onAnimationComplete: () => void;
+  fleetRadar?: boolean;
 }
 
 export function LiveMapLayer({
   riders, selectedId, onSelect,
-  activeRoute, onAnimationStep, onAnimationComplete
+  activeRoute, onAnimationStep, onAnimationComplete,
+  fleetRadar = false
 }: LiveMapLayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<L.Map | null>(null);
@@ -85,16 +88,25 @@ export function LiveMapLayer({
   return (
     <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
       {mapInstance && (
-        <RouteLayer
-          map={mapInstance}
-          route={activeRoute?.route ?? null}
-          riderLat={riders.find(r => r.id === activeRoute?.riderId)?.lat ?? 31.963}
-          riderLng={riders.find(r => r.id === activeRoute?.riderId)?.lng ?? 35.905}
-          onAnimationStep={onAnimationStep}
-          onAnimationComplete={onAnimationComplete}
-          coordsPerTick={2}
-          tickMs={250}
-        />
+        <>
+          <RouteLayer
+            map={mapInstance}
+            route={activeRoute?.route ?? null}
+            riderLat={riders.find(r => r.id === activeRoute?.riderId)?.lat ?? 31.963}
+            riderLng={riders.find(r => r.id === activeRoute?.riderId)?.lng ?? 35.905}
+            onAnimationStep={onAnimationStep}
+            onAnimationComplete={onAnimationComplete}
+            coordsPerTick={2}
+            tickMs={250}
+          />
+          {fleetRadar && (
+            <FleetRadarLayer
+              map={mapInstance}
+              riders={riders}
+              activeRouteRiderId={activeRoute?.riderId ?? null}
+            />
+          )}
+        </>
       )}
     </div>
   );
