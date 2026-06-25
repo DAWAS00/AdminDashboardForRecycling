@@ -57,6 +57,8 @@ export function RiderPanel({
         <RiderDetailDrawer
           rider={selected}
           onClose={onClose}
+          onOrderClick={onOrderClick}
+          activeRoute={activeRoute}
         />
       )}
     </div>
