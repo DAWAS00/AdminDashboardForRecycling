@@ -5,6 +5,8 @@ import { AMMAN_CENTER, STATUS_CONFIG } from "../constants";
 import { makeRiderIcon } from "../helpers";
 import { RouteLayer } from "./RouteLayer";
 import { FleetRadarLayer } from "./FleetRadarLayer";
+import { PassiveRiderLayer } from "./PassiveRiderLayer";
+import { StaticRouteLineLayer } from "./StaticRouteLineLayer";
 
 interface LiveMapLayerProps {
   riders: Rider[];
@@ -85,6 +87,12 @@ export function LiveMapLayer({
     });
   }, [selectedId, riders, activeRoute, mapInstance]);
 
+  const selectedRider = selectedId !== null ? riders.find(r => r.id === selectedId) ?? null : null;
+  const excludeRiderIds = [
+    ...(selectedId !== null ? [selectedId] : []),
+    ...(activeRoute?.riderId ? [activeRoute.riderId] : [])
+  ];
+
   return (
     <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
       {mapInstance && (
@@ -106,6 +114,15 @@ export function LiveMapLayer({
               activeRouteRiderId={activeRoute?.riderId ?? null}
             />
           )}
+          <PassiveRiderLayer
+            map={mapInstance}
+            riders={riders}
+            excludeRiderIds={excludeRiderIds}
+          />
+          <StaticRouteLineLayer
+            map={mapInstance}
+            selectedRider={selectedRider}
+          />
         </>
       )}
     </div>
