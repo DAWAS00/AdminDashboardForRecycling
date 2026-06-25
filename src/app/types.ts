@@ -11,6 +11,8 @@ export interface Order {
   earnings: number;
   createdAt: string;     // ISO date, e.g. "2026-06-24"
   completedAt?: string;  // ISO date when status === "completed"
+  /** Date.now() when rider accepted this order. Enables the delivery timer badge. */
+  acceptedAt?: number;
 }
 
 export interface Rider {
@@ -23,6 +25,8 @@ export interface Rider {
   status: "delivering" | "picking_up" | "idle";
   vehicle: "Motorcycle" | "Van";
   orders: Order[];
+  /** Date.now() when rider last became idle. Enables the idle warning badge. */
+  idleSince?: number;
 }
 
 export interface HubMaterials {
