@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import L from "leaflet";
-import { District, Hub, Rider, Order, MaterialFilter } from "./types";
+import { District, Hub, Rider, Order, MaterialFilter, Client, ContractTier } from "./types";
 import {
   STATUS_CONFIG,
   MOTO_PATH,
@@ -12,7 +12,10 @@ import {
   MATERIAL_DELIVERY_ESTIMATE_MS,
   IDLE_WARNING_MS,
   IDLE_CRITICAL_MS,
-  HistoryMetricKey
+  HistoryMetricKey,
+  TIER_PRICES_JD,
+  TIER_ORDER,
+  TIER_MONTHLY_THRESHOLDS
 } from "./constants";
 
 export function districtFillColor(d: District): string {
@@ -347,4 +350,100 @@ export function computeMaterialComposition(
              ?? "var(--text-tertiary)",
     }))
     .sort((a, b) => b.value - a.value);
+}
+
+// ── Partner & Rewards helpers ─────────────────────────────────────────────────
+
+/**
+ * Health score 0–100 for a partner.
+ * Deductions:
+ *  - Order recency: no active order in 30 days → -25; in 14–30 days → -10
+ *  - Renewal proximity: overdue → -30; within 14 days → -20; within 30 days → -10
+ *  - Green points: below tier minimum threshold → -15
+ */
+export function computePartnerHealth(client: Client): number {
+  const TODAY = new Date("2026-06-24");
+  let score = 100;
+
+  // Factor 1 — order recency
+  const activeOrders = client.orders.filter(
+    o => o.status === "completed" || o.status === "inTransit"
+  );
+  if (activeOrders.length === 0) {
+    score -= 25;
+  } else {
+    const latestMs = activeOrders
+      .map(o => new Date(o.createdAt).getTime())
+      .sort((a, b) => b - a)[0];
+    const daysSince = Math.floor((TODAY.getTime() - latestMs) / (1000 * 60 * 60 * 24));
+    if (daysSince > 30) score -= 25;
+    else if (daysSince > 14) score -= 10;
+  }
+
+  // Factor 2 — renewal proximity
+  const renewal = new Date(client.renewalDate);
+  const daysToRenewal = Math.floor((renewal.getTime() - TODAY.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysToRenewal < 0)       score -= 30;  // overdue
+  else if (daysToRenewal < 14) score -= 20;  // critical
+  else if (daysToRenewal < 30) score -= 10;  // warning
+
+  // Factor 3 — green points engagement
+  const pointsThreshold: Record<ContractTier, number> = {
+    free: 0, basic: 50, pro: 150, enterprise: 400,
+  };
+  if (client.greenPoints < pointsThreshold[client.contractTier]) score -= 15;
+
+  return Math.max(0, Math.min(100, score));
+}
+
+/** Returns true when health score < 60. Triggers ChurnAlertPanel chip. */
+export function isChurnRisk(client: Client): boolean {
+  return computePartnerHealth(client) < 60;
+}
+
+/**
+ * Returns monthly order count (last 30 days), next tier, and progress %.
+ * Used to render the tier progression bar in the drawer Overview tab.
+ */
+export function computeTierProgress(client: Client): {
+  currentOrders: number;
+  nextTier: ContractTier | null;
+  nextTierThreshold: number;
+  pct: number;
+} {
+  const TODAY = new Date("2026-06-24");
+  const thirtyDaysAgo = new Date(TODAY.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const currentOrders = client.orders.filter(
+    o => o.status !== "pending" && new Date(o.createdAt) >= thirtyDaysAgo
+  ).length;
+
+  const idx = TIER_ORDER.indexOf(client.contractTier);
+  const nextTier: ContractTier | null =
+    idx < TIER_ORDER.length - 1 ? TIER_ORDER[idx + 1] : null;
+
+  if (!nextTier) return { currentOrders, nextTier: null, nextTierThreshold: 0, pct: 100 };
+
+  const threshold = TIER_MONTHLY_THRESHOLDS[nextTier];
+  const pct = Math.min(100, Math.round((currentOrders / threshold) * 100));
+  return { currentOrders, nextTier, nextTierThreshold: threshold, pct };
+}
+
+/**
+ * Effective monthly price in JD.
+ * Priority: customPriceJD → annual÷12 → standard monthly.
+ */
+export function getEffectivePriceJD(client: Client): number {
+  if (client.customPriceJD !== undefined) return client.customPriceJD;
+  const prices = TIER_PRICES_JD[client.contractTier];
+  if (client.billingCycle === "annual") return Math.round((prices.annual / 12) * 100) / 100;
+  return prices.monthly;
+}
+
+/** Monthly Recurring Revenue across all non-free partners (JD). */
+export function computePartnerMRR(clients: Client[]): number {
+  return Math.round(
+    clients
+      .filter(c => c.contractTier !== "free")
+      .reduce((sum, c) => sum + getEffectivePriceJD(c), 0) * 100
+  ) / 100;
 }
