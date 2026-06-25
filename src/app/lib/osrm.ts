@@ -6,12 +6,20 @@ const TIMEOUT_MS = 5000;
 export async function fetchOsrmRoute(
   startLat: number, startLng: number,
   endLat: number,   endLng: number,
+  signal?: AbortSignal,
 ): Promise<Route> {
   // OSRM wants longitude first: {lng},{lat};{lng},{lat}
   const url = `${OSRM_BASE}/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
 
   const controller = new AbortController();
   const timerId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  if (signal) {
+    if (signal.aborted) {
+      controller.abort();
+    } else {
+      signal.addEventListener("abort", () => controller.abort());
+    }
+  }
 
   try {
     const res = await fetch(url, { signal: controller.signal });
