@@ -351,7 +351,7 @@ export default function App() {
           )}
         </div>
 
-        <StatsBar co2={totals.co2} earnings={totals.earnings} byMaterial={totals.byMaterial} />
+        <StatsBar co2={totals.co2} earnings={totals.earnings} byMaterial={totals.byMaterial} riders={RIDERS} />
       </div>
 
       <style>{`
