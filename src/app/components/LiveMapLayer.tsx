@@ -100,6 +100,7 @@ export function LiveMapLayer({
           <RouteLayer
             map={mapInstance}
             route={activeRoute?.route ?? null}
+            rider={riders.find(r => r.id === activeRoute?.riderId) ?? null}
             riderLat={riders.find(r => r.id === activeRoute?.riderId)?.lat ?? 31.963}
             riderLng={riders.find(r => r.id === activeRoute?.riderId)?.lng ?? 35.905}
             onAnimationStep={onAnimationStep}
@@ -118,6 +119,7 @@ export function LiveMapLayer({
             map={mapInstance}
             riders={riders}
             excludeRiderIds={excludeRiderIds}
+            markers={markersRef}
           />
           <StaticRouteLineLayer
             map={mapInstance}

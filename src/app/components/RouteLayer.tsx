@@ -1,10 +1,12 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
-import type { Route } from "../types";
+import { Route, Rider } from "../types";
+import { makeRiderIcon } from "../helpers";
 
 interface RouteLayerProps {
   map: L.Map | null;
   route: Route | null;
+  rider?: Rider | null;
   riderLat: number;
   riderLng: number;
   onAnimationStep: (coordIndex: number) => void;
@@ -14,7 +16,7 @@ interface RouteLayerProps {
 }
 
 export function RouteLayer({
-  map, route, riderLat, riderLng,
+  map, route, rider, riderLat, riderLng,
   onAnimationStep, onAnimationComplete,
   coordsPerTick = 1, tickMs = 250,
 }: RouteLayerProps) {
@@ -46,7 +48,7 @@ export function RouteLayer({
   }
 
   useEffect(() => {
-    if (!map || !route) { clearAllLayers(); return; }
+    if (!map || !route || !rider) { clearAllLayers(); return; }
 
     clearAllLayers(); // remove previous route before drawing new one
 
@@ -87,17 +89,13 @@ export function RouteLayer({
       icon: L.divIcon({
         className: "",
         iconSize: [100, 22], iconAnchor: [50, 11],
-        html: `<div style="background:white;border:1px solid #E2E8F0;border-radius:6px;padding:2px 8px;font-family:'DM Mono',monospace;font-size:10px;color:#4B5563;box-shadow:0 1px 4px rgba(0,0,0,.10);white-space:nowrap;">${distanceKm} km · ${Math.round(adjustedDurationSeconds / 60)} min</div>`,
+        html: `<div style="background:white;border:1px solid #E2E8F0;border-radius:6px;padding:2px 8px;font-family:'DM Sans',monospace;font-size:10px;color:#4B5563;box-shadow:0 1px 4px rgba(0,0,0,.10);white-space:nowrap;">${distanceKm} km · ${Math.round(adjustedDurationSeconds / 60)} min</div>`,
       }),
     }).addTo(map);
 
     // 5 — Animated rider marker
     markerRef.current = L.marker([riderLat, riderLng], {
-      icon: L.divIcon({
-        className: "",
-        iconSize: [16, 16], iconAnchor: [8, 8],
-        html: `<div style="width:16px;height:16px;border-radius:50%;background:#1E5C35;border:3px solid white;box-shadow:0 0 0 2px #1E5C35,0 2px 8px rgba(0,0,0,.3);"></div>`,
-      }),
+      icon: makeRiderIcon(rider, true),
     }).addTo(map);
 
     // 6 — Fit map to route

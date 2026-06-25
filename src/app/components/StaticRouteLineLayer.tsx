@@ -14,8 +14,8 @@ interface StaticRouteLineLayerProps {
 
 export function StaticRouteLineLayer({ map, selectedRider }: StaticRouteLineLayerProps) {
   const polylineRef      = useRef<L.Polyline | null>(null);
-  const originMarkerRef  = useRef<L.CircleMarker | null>(null);
-  const destMarkerRef    = useRef<L.CircleMarker | null>(null);
+  const originMarkerRef  = useRef<L.Marker | null>(null);
+  const destMarkerRef    = useRef<L.Marker | null>(null);
   const abortRef         = useRef<AbortController | null>(null);
 
   function clearAll() {
@@ -53,17 +53,29 @@ export function StaticRouteLineLayer({ map, selectedRider }: StaticRouteLineLaye
       lineCap:   'round',
     }).addTo(map);
 
-    // Small dot at origin
-    originMarkerRef.current = L.circleMarker(
+    // Beautiful pin pointer at origin/pickup
+    originMarkerRef.current = L.marker(
       [selectedRider.lat, selectedRider.lng],
-      { radius: 5, color: 'white', fillColor: 'var(--color-brand-600)', fillOpacity: 1, weight: 2 }
-    ).addTo(map);
+      {
+        icon: L.divIcon({
+          className: "",
+          iconSize: [28, 28], iconAnchor: [14, 14],
+          html: `<div style="width:28px;height:28px;border-radius:50%;background:#1E5C35;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:700;">P</div>`
+        })
+      }
+    ).bindTooltip("Pickup Location", { direction: "top" }).addTo(map);
 
-    // Small dot at destination
-    destMarkerRef.current = L.circleMarker(
+    // Beautiful pin pointer at destination/dropoff
+    destMarkerRef.current = L.marker(
       [endLat, endLng],
-      { radius: 5, color: 'white', fillColor: 'var(--color-amber-600)', fillOpacity: 1, weight: 2 }
-    ).addTo(map);
+      {
+        icon: L.divIcon({
+          className: "",
+          iconSize: [28, 28], iconAnchor: [14, 28],
+          html: `<div style="width:28px;height:28px;border-radius:6px 6px 0 6px;background:#C8860A;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:700;">D</div>`
+        })
+      }
+    ).bindTooltip("Dropoff Address", { direction: "top" }).addTo(map);
 
     // ── 2. Upgrade to real OSRM route in background ────────────────────────
     // If OSRM responds, replace the arc with the actual road geometry.

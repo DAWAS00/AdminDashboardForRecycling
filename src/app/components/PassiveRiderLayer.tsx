@@ -12,7 +12,6 @@ const SIMULATED_DELIVERY_MS = 4 * 60 * 1000; // each rider takes ~4 min to trave
 // ─── Per-rider runtime state (NOT React state) ────────────────────────────────
 
 interface RiderAnimState {
-  marker: L.Marker;
   waypoints: [number, number][];
   startedAt: number;         // Date.now() when animation started for this rider
   durationMs: number;        // how long the full arc takes to traverse
@@ -26,12 +25,15 @@ interface PassiveRiderLayerProps {
   /** IDs of riders currently being watched via the full RouteLayer — exclude them
    *  so we don't double-render a moving marker on top of the active tracker. */
   excludeRiderIds?: number[];
+  /** Ref to the main Leaflet markers from LiveMapLayer */
+  markers: React.MutableRefObject<Record<number, L.Marker>>;
 }
 
 export function PassiveRiderLayer({
   map,
   riders,
   excludeRiderIds = [],
+  markers,
 }: PassiveRiderLayerProps) {
 
   // Map of riderId → animation state. Lives outside React — never causes re-render.
@@ -47,11 +49,15 @@ export function PassiveRiderLayer({
       r => (r.status === 'delivering' || r.status === 'picking_up') && !excluded.has(r.id)
     );
 
-    // Remove markers for riders that are no longer active
-    for (const [id, state] of riderStateRef.current) {
+    // Reset markers for riders that are no longer active in passive animation
+    for (const [id] of riderStateRef.current) {
       const stillActive = activeRiders.some(r => r.id === id);
       if (!stillActive) {
-        state.marker.remove();
+        const originalRider = riders.find(r => r.id === id);
+        const marker = markers.current[id];
+        if (originalRider && marker) {
+          marker.setLatLng([originalRider.lat, originalRider.lng]);
+        }
         riderStateRef.current.delete(id);
       }
     }
@@ -72,22 +78,16 @@ export function PassiveRiderLayer({
       const routeObj = buildArcFallback(rider.lat, rider.lng, endLat, endLng);
       const waypoints = routeObj.coords;
 
-      // Create a subtle passive marker — slightly smaller than the main rider marker
-      const icon = makePassiveIcon(rider);
-      const marker = L.marker(waypoints[0], { icon, interactive: false })
-        .addTo(map);
-
       // Stagger start times so riders aren't all at the same point in their arc
       const staggerMs = (rider.id % 5) * (SIMULATED_DELIVERY_MS / 5);
 
       riderStateRef.current.set(rider.id, {
-        marker,
         waypoints,
         startedAt: Date.now() - staggerMs, // offset by stagger so they look spread out
         durationMs: SIMULATED_DELIVERY_MS,
       });
     }
-  }, [map, riders, excludeRiderIds]);
+  }, [map, riders, excludeRiderIds, markers]);
 
   // ── Shared animation interval ─────────────────────────────────────────────
   useEffect(() => {
@@ -97,7 +97,7 @@ export function PassiveRiderLayer({
       if (!map) return;
       const bounds = map.getBounds();
 
-      for (const [, state] of riderStateRef.current) {
+      for (const [id, state] of riderStateRef.current) {
         const elapsed  = Date.now() - state.startedAt;
         // Loop the animation: when rider reaches destination, restart from origin
         const loopElapsed = elapsed % state.durationMs;
@@ -108,10 +108,13 @@ export function PassiveRiderLayer({
         );
         const [lat, lng] = state.waypoints[index];
 
-        // Skip setLatLng if the rider is outside the current map viewport
-        // — saves DOM updates for off-screen markers
-        if (bounds.contains([lat, lng]) || bounds.contains(state.marker.getLatLng())) {
-          state.marker.setLatLng([lat, lng]);
+        const marker = markers.current[id];
+        if (marker) {
+          // Skip setLatLng if the rider is outside the current map viewport
+          // — saves DOM updates for off-screen markers
+          if (bounds.contains([lat, lng]) || bounds.contains(marker.getLatLng())) {
+            marker.setLatLng([lat, lng]);
+          }
         }
       }
     }
@@ -141,64 +144,22 @@ export function PassiveRiderLayer({
       document.removeEventListener('visibilitychange', onVisibility);
       stopInterval();
     };
-  }, [map]); // only restart interval when map instance changes
+  }, [map, markers]); // only restart interval when map or markers ref changes
 
   // ── Cleanup all markers on unmount ───────────────────────────────────────
   useEffect(() => {
     return () => {
-      for (const [, state] of riderStateRef.current) {
-        state.marker.remove();
+      for (const [id] of riderStateRef.current) {
+        const originalRider = riders.find(r => r.id === id);
+        const marker = markers.current[id];
+        if (originalRider && marker) {
+          marker.setLatLng([originalRider.lat, originalRider.lng]);
+        }
       }
       riderStateRef.current.clear();
     };
-  }, []);
+  }, [riders, markers]);
 
   // This component renders nothing into the React tree
   return null;
-}
-
-// ─── Passive marker icon ──────────────────────────────────────────────────────
-// Smaller and slightly transparent compared to the selected rider marker.
-// Uses a simple CSS pulsing dot — no image files needed.
-
-function makePassiveIcon(rider: Rider): L.DivIcon {
-  const isVan = rider.vehicle === 'Van';
-  const color  = isVan ? 'var(--color-brand-600)' : 'var(--color-amber-600)';
-  const size   = isVan ? 14 : 11; // px — vans slightly larger
-
-  return L.divIcon({
-    className: '',
-    iconSize:  [size + 8, size + 8],
-    iconAnchor:[(size + 8) / 2, (size + 8) / 2],
-    html: `
-      <div style="
-        position: relative;
-        width: ${size + 8}px;
-        height: ${size + 8}px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">
-        <!-- pulse ring -->
-        <div class="passive-pulse" style="
-          position: absolute;
-          width: ${size + 8}px;
-          height: ${size + 8}px;
-          border-radius: 50%;
-          background: ${color};
-          opacity: 0.2;
-        "></div>
-        <!-- solid dot -->
-        <div style="
-          width: ${size}px;
-          height: ${size}px;
-          border-radius: 50%;
-          background: ${color};
-          opacity: 0.75;
-          border: 2px solid white;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-        "></div>
-      </div>
-    `,
-  });
 }
