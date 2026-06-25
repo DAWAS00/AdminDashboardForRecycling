@@ -5,7 +5,6 @@ import { AMMAN_CENTER, STATUS_CONFIG } from "../constants";
 import { makeRiderIcon } from "../helpers";
 import { RouteLayer } from "./RouteLayer";
 import { FleetRadarLayer } from "./FleetRadarLayer";
-import { PassiveRiderLayer } from "./PassiveRiderLayer";
 import { StaticRouteLineLayer } from "./StaticRouteLineLayer";
 
 interface LiveMapLayerProps {
@@ -77,21 +76,13 @@ export function LiveMapLayer({
     riders.forEach(rider => {
       const m = markersRef.current[rider.id];
       if (!m) return;
-      if (activeRoute?.riderId === rider.id) {
-        m.remove();
-      } else {
-        m.addTo(mapInstance);
-        m.setIcon(makeRiderIcon(rider, selectedId === rider.id));
-        m.setZIndexOffset(selectedId === rider.id ? 1000 : 0);
-      }
+      m.addTo(mapInstance);
+      m.setIcon(makeRiderIcon(rider, selectedId === rider.id));
+      m.setZIndexOffset(selectedId === rider.id ? 1000 : 0);
     });
-  }, [selectedId, riders, activeRoute, mapInstance]);
+  }, [selectedId, riders, mapInstance]);
 
   const selectedRider = selectedId !== null ? riders.find(r => r.id === selectedId) ?? null : null;
-  const excludeRiderIds = [
-    ...(selectedId !== null ? [selectedId] : []),
-    ...(activeRoute?.riderId ? [activeRoute.riderId] : [])
-  ];
 
   return (
     <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
@@ -115,12 +106,6 @@ export function LiveMapLayer({
               activeRouteRiderId={activeRoute?.riderId ?? null}
             />
           )}
-          <PassiveRiderLayer
-            map={mapInstance}
-            riders={riders}
-            excludeRiderIds={excludeRiderIds}
-            markers={markersRef}
-          />
           <StaticRouteLineLayer
             map={mapInstance}
             selectedRider={selectedRider}

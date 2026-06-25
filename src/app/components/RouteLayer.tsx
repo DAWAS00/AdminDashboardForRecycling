@@ -93,20 +93,14 @@ export function RouteLayer({
       }),
     }).addTo(map);
 
-    // 5 — Animated rider marker
-    markerRef.current = L.marker([riderLat, riderLng], {
-      icon: makeRiderIcon(rider, true),
-    }).addTo(map);
-
-    // 6 — Fit map to route
+    // 5 — Fit map to route
     map.fitBounds(polylineRef.current!.getBounds(), { padding: [40, 40] });
 
-    // 7 — Animation loop
+    // 6 — Animation loop
     coordIndexRef.current = 0;
     intervalRef.current = setInterval(() => {
       const next = coordIndexRef.current + coordsPerTick;
       if (next >= coords.length) {
-        markerRef.current?.setLatLng(coords[coords.length - 1]);
         coordIndexRef.current = coords.length - 1;
         clearInterval(intervalRef.current!);
         intervalRef.current = null;
@@ -114,7 +108,6 @@ export function RouteLayer({
         return;
       }
       coordIndexRef.current = next;
-      markerRef.current?.setLatLng(coords[next]);
       onStepRef.current(next);
     }, tickMs);
 
