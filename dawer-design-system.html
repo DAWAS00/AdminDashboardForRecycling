@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dawer — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Cairo:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  /* ─────────────────────────────────────────────
+     DESIGN TOKENS  (single source of truth)
+  ───────────────────────────────────────────── */
+  :root {
+    /* Brand greens */
+    --color-brand-900: #032B17;
+    --color-brand-800: #06402B;
+    --color-brand-700: #0A5E3E;
+    --color-brand-600: #1E5C35;
+    --color-brand-500: #166534;
+    --color-brand-100: #D1FAE5;
+    --color-brand-50:  #ECFDF5;
+
+    /* Amber / earnings */
+    --color-amber-700: #A16207;
+    --color-amber-600: #C8860A;
+    --color-amber-100: #FEF3C7;
+    --color-amber-50:  #FFFBEB;
+
+    /* Material colors */
+    --color-oil:       #C8860A;
+    --color-oil-bg:    #FEF3C7;
+    --color-plastic:   #1E40AF;
+    --color-plastic-bg:#DBEAFE;
+    --color-paper:     #166534;
+    --color-paper-bg:  #DCFCE7;
+    --color-ewaste:    #6D28D9;
+    --color-ewaste-bg: #EDE9FE;
+
+    /* Neutrals */
+    --color-text-primary:   #111827;
+    --color-text-secondary: #4B5563;
+    --color-text-tertiary:  #94A3B8;
+    --color-text-disabled:  #CBD5E1;
+    --color-border:         #E2E8F0;
+    --color-border-strong:  #CBD5E1;
+    --color-surface:        #F4F6F5;
+    --color-surface-card:   #FFFFFF;
+    --color-surface-hover:  #F8FAFB;
+
+    /* Danger */
+    --color-danger-600: #DC2626;
+    --color-danger-100: #FEE2E2;
+
+    /* Status */
+    --color-status-live:    #4ADE80;
+
+    /* ── Typography ── */
+    --font-sans:  'DM Sans', system-ui, sans-serif;
+    --font-mono:  'DM Mono', 'Courier New', monospace;
+    --font-ar:    'Cairo', sans-serif;
+
+    --text-2xs:  10px;  /* labels / badges only */
+    --text-xs:   11px;
+    --text-sm:   13px;
+    --text-base: 14px;
+    --text-md:   16px;
+    --text-lg:   18px;
+    --text-xl:   22px;
+    --text-2xl:  28px;
+
+    --weight-regular: 400;
+    --weight-medium:  500;
+    --weight-semibold:600;
+    --weight-bold:    700;
+
+    --leading-tight:  1.25;
+    --leading-normal: 1.5;
+    --leading-loose:  1.75;
+
+    /* ── Spacing (4pt grid) ── */
+    --space-0:  0px;
+    --space-1:  4px;
+    --space-2:  8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10:40px;
+    --space-12:48px;
+
+    /* ── Radii ── */
+    --radius-sm:  6px;
+    --radius-md:  8px;
+    --radius-lg:  12px;
+    --radius-xl:  16px;
+    --radius-full:9999px;
+
+    /* ── Shadows ── */
+    --shadow-xs:  0 1px 2px rgba(0,0,0,0.06);
+    --shadow-sm:  0 1px 6px rgba(0,0,0,0.10);
+    --shadow-md:  0 4px 16px rgba(0,0,0,0.12);
+    --shadow-lg:  0 8px 32px rgba(0,0,0,0.14);
+
+    /* ── Layout ── */
+    --sidebar-width: 200px;
+    --panel-width:   288px;
+    --header-height:  52px;
+    --statsbar-height:60px;
+
+    /* ── Z-index ── */
+    --z-base:    0;
+    --z-map:    10;
+    --z-overlay:20;
+    --z-panel:  30;
+    --z-header: 40;
+    --z-modal: 100;
+    --z-toast: 200;
+  }
+
+  /* ─── Page reset ─── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    color: var(--color-text-primary);
+    background: #F0F2F1;
+    line-height: var(--leading-normal);
+  }
+
+  /* ─── Layout ─── */
+  .page { max-width: 1100px; margin: 0 auto; padding: var(--space-8) var(--space-6); }
+
+  .section { margin-bottom: var(--space-10); }
+  .section-title {
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-bold);
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .section-heading {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-2);
+  }
+  .section-sub {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-6);
+    line-height: var(--leading-loose);
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-4); }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
+  .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-3); }
+  .flex-row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+
+  /* ─── Hero ─── */
+  .hero {
+    background: linear-gradient(135deg, var(--color-brand-800) 0%, var(--color-brand-700) 60%, #0D7A52 100%);
+    border-radius: var(--radius-xl);
+    padding: var(--space-8) var(--space-8);
+    margin-bottom: var(--space-8);
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .hero-tag {
+    display: inline-block;
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: 0.12em;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.7);
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    margin-bottom: var(--space-3);
+  }
+  .hero h1 {
+    font-size: 32px;
+    font-weight: var(--weight-bold);
+    line-height: 1.15;
+    margin-bottom: var(--space-2);
+  }
+  .hero p {
+    font-size: var(--text-sm);
+    color: rgba(255,255,255,0.6);
+    max-width: 540px;
+  }
+
+  /* ─── Cards ─── */
+  .card {
+    background: var(--color-surface-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    padding: var(--space-4);
+    box-shadow: var(--shadow-xs);
+  }
+  .card-label {
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-bold);
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-3);
+  }
+
+  /* ─── Color Swatches ─── */
+  .swatch-group { display: flex; flex-direction: column; gap: var(--space-2); }
+  .swatch-group-label {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-1);
+  }
+  .swatch-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+  .swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 64px;
+  }
+  .swatch-color {
+    width: 64px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: var(--shadow-xs);
+  }
+  .swatch-name {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--color-text-tertiary);
+    text-align: center;
+  }
+  .swatch-var {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    color: var(--color-text-disabled);
+    text-align: center;
+  }
+
+  /* ─── Type Scale ─── */
+  .type-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-6);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .type-row:last-child { border-bottom: none; }
+  .type-meta {
+    min-width: 140px;
+    flex-shrink: 0;
+  }
+  .type-meta-size {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+  }
+  .type-meta-var {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--color-text-disabled);
+  }
+  .type-meta-use {
+    font-size: 10px;
+    color: var(--color-brand-600);
+    font-weight: var(--weight-medium);
+    margin-top: 2px;
+  }
+
+  /* ─── Spacing ─── */
+  .space-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-2) 0;
+  }
+  .space-bar-wrap { width: 200px; height: 20px; position: relative; }
+  .space-bar {
+    position: absolute;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
+    height: 8px;
+    border-radius: var(--radius-sm);
+    background: var(--color-brand-600);
+  }
+  .space-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    min-width: 60px;
+  }
+  .space-value {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+  }
+
+  /* ─── Component Demos ─── */
+
+  /* Badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-semibold);
+    line-height: 1.6;
+  }
+  .badge-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .badge--brand   { background: var(--color-brand-100); color: var(--color-brand-600); }
+  .badge--amber   { background: var(--color-amber-100); color: var(--color-amber-600); }
+  .badge--danger  { background: var(--color-danger-100); color: var(--color-danger-600); }
+  .badge--neutral { background: #F1F5F9; color: var(--color-text-secondary); }
+  .badge--live    { background: var(--color-brand-800); color: #4ADE80; }
+
+  /* Chip */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 3px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 10px;
+    font-weight: var(--weight-semibold);
+  }
+
+  /* Button */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.15s, box-shadow 0.15s;
+    min-height: 36px;
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+  }
+  .btn--primary { background: var(--color-brand-600); color: white; }
+  .btn--primary:hover { background: var(--color-brand-500); box-shadow: var(--shadow-sm); }
+  .btn--secondary { background: var(--color-brand-50); color: var(--color-brand-600); border: 1px solid var(--color-brand-100); }
+  .btn--secondary:hover { background: var(--color-brand-100); }
+  .btn--ghost { background: transparent; color: var(--color-text-secondary); }
+  .btn--ghost:hover { background: var(--color-surface); }
+  .btn--danger { background: var(--color-danger-100); color: var(--color-danger-600); }
+  .btn--danger:hover { background: #FECACA; }
+  .btn--sm { padding: 5px 12px; font-size: var(--text-xs); min-height: 28px; border-radius: var(--radius-sm); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Input */
+  .input-wrap { display: flex; flex-direction: column; gap: var(--space-1); }
+  .input-label {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+  }
+  .input {
+    height: 36px;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    background: white;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input:focus {
+    border-color: var(--color-brand-600);
+    box-shadow: 0 0 0 3px rgba(30,92,53,0.12);
+  }
+  .input--error {
+    border-color: var(--color-danger-600);
+  }
+  .input--error:focus {
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.12);
+  }
+  .input-helper { font-size: var(--text-xs); color: var(--color-text-tertiary); }
+  .input-error-msg { font-size: var(--text-xs); color: var(--color-danger-600); }
+
+  /* Toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-2) 0;
+  }
+  .toggle-label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-primary);
+  }
+  .toggle {
+    position: relative;
+    width: 36px; height: 20px;
+    flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--color-border-strong);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle-slider::after {
+    content: '';
+    position: absolute;
+    left: 2px; top: 2px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: var(--shadow-xs);
+    transition: transform 0.2s;
+  }
+  .toggle input:checked + .toggle-slider { background: var(--color-brand-600); }
+  .toggle input:checked + .toggle-slider::after { transform: translateX(16px); }
+  .toggle input:focus-visible + .toggle-slider {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    height: 6px;
+    background: var(--color-border);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease;
+  }
+
+  /* Nav item */
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); }
+  .nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: var(--weight-semibold); }
+  .nav-item:focus-visible { outline: 2px solid rgba(255,255,255,0.4); outline-offset: -2px; }
+
+  /* Stat card */
+  .stat-card {
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    box-shadow: var(--shadow-xs);
+  }
+  .stat-icon {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: var(--space-3);
+    font-size: 16px;
+  }
+  .stat-value {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+  }
+  .stat-label {
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-bold);
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .stat-delta {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    margin-top: var(--space-2);
+  }
+
+  /* Order card */
+  .order-card {
+    border-radius: var(--radius-lg);
+    padding: var(--space-3);
+    border: 1px solid;
+  }
+  .order-id {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+  }
+
+  /* Anti-pattern warning box */
+  .warning-box {
+    background: #FFF7ED;
+    border: 1px solid #FED7AA;
+    border-left: 3px solid #EA580C;
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-3);
+  }
+  .warning-title {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    color: #9A3412;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-1);
+  }
+  .warning-body {
+    font-size: var(--text-xs);
+    color: #7C2D12;
+    line-height: var(--leading-normal);
+  }
+  code {
+    font-family: var(--font-mono);
+    background: rgba(0,0,0,0.06);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+
+  /* Do/Don't */
+  .do-dont { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-top: var(--space-4); }
+  .do-box, .dont-box {
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-xs);
+    line-height: var(--leading-normal);
+  }
+  .do-box { background: var(--color-brand-50); border: 1px solid var(--color-brand-100); }
+  .dont-box { background: var(--color-danger-100); border: 1px solid #FECACA; }
+  .do-tag {
+    font-size: 10px;
+    font-weight: var(--weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-brand-600);
+    margin-bottom: var(--space-2);
+  }
+  .dont-tag {
+    font-size: 10px;
+    font-weight: var(--weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-danger-600);
+    margin-bottom: var(--space-2);
+  }
+
+  /* Idea cards */
+  .idea-card {
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    box-shadow: var(--shadow-xs);
+  }
+  .idea-number {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: var(--weight-bold);
+    color: var(--color-text-disabled);
+    margin-bottom: var(--space-2);
+  }
+  .idea-title {
+    font-size: var(--text-md);
+    font-weight: var(--weight-bold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-2);
+  }
+  .idea-desc {
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-loose);
+  }
+  .idea-tag {
+    display: inline-block;
+    margin-top: var(--space-3);
+    font-size: 10px;
+    font-weight: var(--weight-semibold);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+
+  /* Divider */
+  hr { border: none; border-top: 1px solid var(--color-border); margin: var(--space-6) 0; }
+
+  /* Icon placeholder (SVG inline) */
+  svg { display: inline-block; vertical-align: middle; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .pulse-dot { animation: pulse 2s ease-in-out infinite; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">DESIGN SYSTEM · v1.0</div>
+    <h1>Dawer Dashboard</h1>
+    <p>A token-first design system for the Dawer recycling operations platform. Every value defined here is the single source of truth — no magic numbers, no raw hex, no guessing.</p>
+    <div style="margin-top:24px;display:flex;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border-radius:8px;padding:8px 14px;">
+        <span class="pulse-dot" style="display:inline-block;width:8px;height:8px;background:#4ADE80;border-radius:50%;"></span>
+        <span style="font-size:11px;color:rgba(255,255,255,0.7);">Amman Operations Center</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border-radius:8px;padding:8px 14px;">
+        <span style="font-size:11px;color:rgba(255,255,255,0.7);">Stack: React + Vite + Tailwind v4</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border-radius:8px;padding:8px 14px;">
+        <span style="font-size:11px;color:rgba(255,255,255,0.7);">Fonts: DM Sans · DM Mono · Cairo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────
+       1. COLORS
+  ─────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">01 — Color Tokens</div>
+    <h2 class="section-heading">Color System</h2>
+    <p class="section-sub">Every color in the UI must come from a CSS variable. Never write a raw hex value in a component. The brand palette is deep forest green + warm amber — anchored in the environmental mission of the platform.</p>
+
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-label">Brand Green — Primary</div>
+      <div class="swatch-row">
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-brand-900);"></div>
+          <div class="swatch-name">#032B17</div>
+          <div class="swatch-var">--brand-900</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-brand-800);"></div>
+          <div class="swatch-name">#06402B</div>
+          <div class="swatch-var">--brand-800</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-brand-700);"></div>
+          <div class="swatch-name">#0A5E3E</div>
+          <div class="swatch-var">--brand-700</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-brand-600);"></div>
+          <div class="swatch-name">#1E5C35</div>
+          <div class="swatch-var">--brand-600 ★</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-brand-500);"></div>
+          <div class="swatch-name">#166534</div>
+          <div class="swatch-var">--brand-500</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-brand-100);"></div>
+          <div class="swatch-name">#D1FAE5</div>
+          <div class="swatch-var">--brand-100</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-brand-50);border:1px solid #E2E8F0;"></div>
+          <div class="swatch-name">#ECFDF5</div>
+          <div class="swatch-var">--brand-50</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-label">Amber — Earnings & Warnings</div>
+      <div class="swatch-row">
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-amber-700);"></div>
+          <div class="swatch-name">#A16207</div>
+          <div class="swatch-var">--amber-700</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-amber-600);"></div>
+          <div class="swatch-name">#C8860A</div>
+          <div class="swatch-var">--amber-600 ★</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-amber-100);"></div>
+          <div class="swatch-name">#FEF3C7</div>
+          <div class="swatch-var">--amber-100</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-amber-50);border:1px solid #E2E8F0;"></div>
+          <div class="swatch-name">#FFFBEB</div>
+          <div class="swatch-var">--amber-50</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-label">Material Type Colors — Fixed semantic meanings</div>
+      <div class="swatch-row">
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-oil);"></div>
+          <div class="swatch-name">Cooking Oil</div>
+          <div class="swatch-var">--color-oil</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-plastic);"></div>
+          <div class="swatch-name">Plastic</div>
+          <div class="swatch-var">--color-plastic</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-paper);"></div>
+          <div class="swatch-name">Paper</div>
+          <div class="swatch-var">--color-paper</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-ewaste);"></div>
+          <div class="swatch-name">E-Waste</div>
+          <div class="swatch-var">--color-ewaste</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Neutrals — Text, surfaces, borders</div>
+      <div class="swatch-row">
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-text-primary);"></div>
+          <div class="swatch-name">#111827</div>
+          <div class="swatch-var">--text-primary</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-text-secondary);"></div>
+          <div class="swatch-name">#4B5563</div>
+          <div class="swatch-var">--text-secondary</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-text-tertiary);"></div>
+          <div class="swatch-name">#94A3B8</div>
+          <div class="swatch-var">--text-tertiary</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-text-disabled);"></div>
+          <div class="swatch-name">#CBD5E1</div>
+          <div class="swatch-var">--text-disabled</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-border);border:1px solid #E2E8F0;"></div>
+          <div class="swatch-name">#E2E8F0</div>
+          <div class="swatch-var">--color-border</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--color-surface);border:1px solid #E2E8F0;"></div>
+          <div class="swatch-name">#F4F6F5</div>
+          <div class="swatch-var">--surface</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────
+       2. TYPOGRAPHY
+  ─────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">02 — Typography</div>
+    <h2 class="section-heading">Type Scale</h2>
+    <p class="section-sub">Three fonts. One role each. DM Sans for all UI text. DM Mono for numbers, IDs, and data. Cairo for Arabic names and labels. Never mix these roles. The smallest visible text in the UI is 10px — only for uppercase badge labels.</p>
+
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-label">DM Sans — All UI labels, headings, body</div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-size">28px / Bold</div>
+          <div class="type-meta-var">--text-2xl</div>
+          <div class="type-meta-use">Page headings</div>
+        </div>
+        <div style="font-size:28px;font-weight:700;color:var(--color-text-primary);line-height:1.2;">Live Operations Map</div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-size">22px / Bold</div>
+          <div class="type-meta-var">--text-xl</div>
+          <div class="type-meta-use">Section titles</div>
+        </div>
+        <div style="font-size:22px;font-weight:700;color:var(--color-text-primary);">Collection Hubs</div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-size">18px / Semibold</div>
+          <div class="type-meta-var">--text-lg</div>
+          <div class="type-meta-use">Panel headers</div>
+        </div>
+        <div style="font-size:18px;font-weight:600;color:var(--color-text-primary);">Ahmad Khalil</div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-size">16px / Medium</div>
+          <div class="type-meta-var">--text-md</div>
+          <div class="type-meta-use">Subheadings, inputs</div>
+        </div>
+        <div style="font-size:16px;font-weight:500;color:var(--color-text-primary);">Hub Al-Sweifieh</div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-size">14px / Regular</div>
+          <div class="type-meta-var">--text-base</div>
+          <div class="type-meta-use">Body, list items</div>
+        </div>
+        <div style="font-size:14px;font-weight:400;color:var(--color-text-primary);">Sweifieh Commercial District, Amman</div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-size">13px / Medium</div>
+          <div class="type-meta-var">--text-sm</div>
+          <div class="type-meta-use">Secondary text, nav items</div>
+        </div>
+        <div style="font-size:13px;font-weight:500;color:var(--color-text-secondary);">5 riders active · 3 orders in transit</div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-size">11px / Regular</div>
+          <div class="type-meta-var">--text-xs</div>
+          <div class="type-meta-use">Meta, timestamps</div>
+        </div>
+        <div style="font-size:11px;font-weight:400;color:var(--color-text-tertiary);">Last shipment: 2026-06-19</div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-size">10px / Bold + CAPS</div>
+          <div class="type-meta-var">--text-2xs</div>
+          <div class="type-meta-use">Badge labels, section eyebrows — ONLY</div>
+        </div>
+        <div style="font-size:10px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:0.1em;text-transform:uppercase;">RIDERS ONLINE</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-label">DM Mono — Numbers & IDs</div>
+        <div style="font-family:var(--font-mono);">
+          <div style="font-size:22px;font-weight:700;color:var(--color-brand-600);">1,247.3<span style="font-size:12px;font-weight:400;color:var(--color-text-tertiary);margin-left:4px;">kg CO₂</span></div>
+          <div style="font-size:18px;font-weight:700;color:var(--color-amber-600);margin-top:8px;">328.50<span style="font-size:12px;font-weight:400;color:var(--color-text-tertiary);margin-left:4px;">JD</span></div>
+          <div style="font-size:14px;font-weight:500;color:var(--color-ewaste);margin-top:8px;">ORD-2841</div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:8px;">14:22:07</div>
+        </div>
+        <div style="margin-top:12px;font-size:10px;color:var(--color-text-disabled);line-height:1.6;">Use for: stats, earnings, CO₂ values, order IDs, timestamps, phone numbers, percentages in charts</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Cairo — Arabic Text</div>
+        <div style="font-family:var(--font-ar);">
+          <div style="font-size:18px;font-weight:600;color:var(--color-brand-600);direction:rtl;text-align:right;">أحمد خليل</div>
+          <div style="font-size:14px;color:var(--color-text-secondary);direction:rtl;text-align:right;margin-top:8px;">عمر حسن — فان</div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);direction:rtl;text-align:right;margin-top:8px;">طارق منصور · دراجة</div>
+        </div>
+        <div style="margin-top:12px;font-size:10px;color:var(--color-text-disabled);line-height:1.6;">Use for: rider Arabic names only. Never mix Cairo with UI labels in the same element.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────
+       3. SPACING
+  ─────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">03 — Spacing</div>
+    <h2 class="section-heading">4pt Grid System</h2>
+    <p class="section-sub">Every margin, padding, and gap is a multiple of 4px. This creates visual rhythm without thought. If you find yourself writing <code>py-2.5</code> or <code>px-3.5</code>, that's a red flag — use the nearest token instead.</p>
+
+    <div class="card">
+      <div class="card-label">Spacing Scale</div>
+      <div class="space-row">
+        <div class="space-label">--space-1</div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:4px;"></div></div>
+        <div class="space-value">4px — icon gaps, micro spacing</div>
+      </div>
+      <div class="space-row">
+        <div class="space-label">--space-2</div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:8px;"></div></div>
+        <div class="space-value">8px — badge padding, tight rows</div>
+      </div>
+      <div class="space-row">
+        <div class="space-label">--space-3</div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:12px;"></div></div>
+        <div class="space-value">12px — card padding (compact), chip padding</div>
+      </div>
+      <div class="space-row">
+        <div class="space-label">--space-4</div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:16px;"></div></div>
+        <div class="space-value">16px — card padding, section gaps ★ most used</div>
+      </div>
+      <div class="space-row">
+        <div class="space-label">--space-5</div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:20px;"></div></div>
+        <div class="space-value">20px — header horizontal padding</div>
+      </div>
+      <div class="space-row">
+        <div class="space-label">--space-6</div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:24px;"></div></div>
+        <div class="space-value">24px — between sections</div>
+      </div>
+      <div class="space-row">
+        <div class="space-label">--space-8</div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:32px;"></div></div>
+        <div class="space-value">32px — page margins, major sections</div>
+      </div>
+      <div class="space-row">
+        <div class="space-label">--space-12</div>
+        <div class="space-bar-wrap"><div class="space-bar" style="width:48px;"></div></div>
+        <div class="space-value">48px — top-level section separation</div>
+      </div>
+
+      <hr style="margin:16px 0;" />
+      <div class="card-label">Layout Dimensions</div>
+      <div class="space-row">
+        <div class="space-label">Sidebar</div>
+        <div class="space-value" style="font-family:var(--font-mono);">--sidebar-width: 200px</div>
+      </div>
+      <div class="space-row">
+        <div class="space-label">Right Panel</div>
+        <div class="space-value" style="font-family:var(--font-mono);">--panel-width: 288px (unified, was 284/300)</div>
+      </div>
+      <div class="space-row">
+        <div class="space-label">Header</div>
+        <div class="space-value" style="font-family:var(--font-mono);">--header-height: 52px</div>
+      </div>
+      <div class="space-row">
+        <div class="space-label">Stats Bar</div>
+        <div class="space-value" style="font-family:var(--font-mono);">--statsbar-height: 60px</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────
+       4. COMPONENTS
+  ─────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">04 — Components</div>
+    <h2 class="section-heading">Component Library</h2>
+    <p class="section-sub">Live demos of every UI primitive used in the dashboard. Copy the HTML pattern, not the inline style.</p>
+
+    <!-- Badges -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-label">Badges & Status Pills</div>
+      <div class="flex-row">
+        <span class="badge badge--brand"><span class="badge-dot" style="background:var(--color-brand-600);"></span>Collecting</span>
+        <span class="badge badge--amber"><span class="badge-dot" style="background:var(--color-amber-600);"></span>Ready to Ship</span>
+        <span class="badge badge--neutral"><span class="badge-dot" style="background:var(--color-text-tertiary);"></span>Idle</span>
+        <span class="badge badge--danger"><span class="badge-dot" style="background:var(--color-danger-600);"></span>Offline</span>
+        <span class="badge badge--live"><span class="badge-dot pulse-dot" style="background:#4ADE80;"></span>LIVE</span>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="chip" style="background:var(--color-oil-bg);color:var(--color-oil);">Oil 120L</span>
+        <span class="chip" style="background:var(--color-plastic-bg);color:var(--color-plastic);">Plastic 34kg</span>
+        <span class="chip" style="background:var(--color-paper-bg);color:var(--color-paper);">Paper 18kg</span>
+        <span class="chip" style="background:var(--color-ewaste-bg);color:var(--color-ewaste);">E-Waste 5kg</span>
+      </div>
+      <div style="margin-top:8px;font-size:10px;color:var(--color-text-disabled);">All chips use border-radius: --radius-sm (6px). All pills use --radius-full.</div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-label">Buttons</div>
+      <div class="flex-row" style="margin-bottom:12px;">
+        <button class="btn btn--primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Hub
+        </button>
+        <button class="btn btn--secondary">Schedule Shipment</button>
+        <button class="btn btn--ghost">Cancel</button>
+        <button class="btn btn--danger">Mark as Shipped</button>
+        <button class="btn btn--primary" disabled>Loading...</button>
+      </div>
+      <div class="flex-row">
+        <button class="btn btn--sm btn--primary">Confirm</button>
+        <button class="btn btn--sm btn--secondary">Edit</button>
+        <button class="btn btn--sm btn--ghost">View</button>
+      </div>
+      <div style="margin-top:12px;font-size:10px;color:var(--color-text-disabled);">Min height 36px (full) / 28px (sm). Focus ring: 2px solid --brand-600, offset 2px. Always has aria-label if icon-only.</div>
+    </div>
+
+    <!-- Inputs -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-label">Form Inputs</div>
+      <div class="grid-3" style="margin-bottom:12px;">
+        <div class="input-wrap">
+          <label class="input-label" for="demo-name">Hub Name <span style="color:var(--color-danger-600);">*</span></label>
+          <input class="input" id="demo-name" type="text" placeholder="e.g. Hub Tabarbour" />
+          <span class="input-helper">Use the district name for consistency</span>
+        </div>
+        <div class="input-wrap">
+          <label class="input-label" for="demo-cap">Capacity (kg) <span style="color:var(--color-danger-600);">*</span></label>
+          <input class="input" id="demo-cap" type="number" placeholder="500" />
+        </div>
+        <div class="input-wrap">
+          <label class="input-label" for="demo-err">Schedule</label>
+          <input class="input input--error" id="demo-err" type="text" value="invalid" />
+          <span class="input-error-msg">Must be "weekly" or "monthly"</span>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--color-text-disabled);">Always use a visible &lt;label&gt;. Never placeholder-only. Error message goes below the field, not at the top.</div>
+    </div>
+
+    <!-- Toggles -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-label">Toggle Switches (fixed — no emoji in labels)</div>
+      <div style="max-width:280px;">
+        <div class="toggle-row">
+          <span class="toggle-label">Show Amman Boundary</span>
+          <label class="toggle" aria-label="Show Amman Boundary">
+            <input type="checkbox" checked />
+            <div class="toggle-slider"></div>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Rider Hotspots</span>
+          <label class="toggle" aria-label="Rider Hotspots">
+            <input type="checkbox" checked />
+            <div class="toggle-slider"></div>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Request Density</span>
+          <label class="toggle" aria-label="Request Density">
+            <input type="checkbox" />
+            <div class="toggle-slider"></div>
+          </label>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:10px;color:var(--color-danger-600);">❌ Old: <code>🔥 Rider hotspots</code> — emoji in UI label. Use SVG icon or text-only.</div>
+    </div>
+
+    <!-- Progress bars -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-label">Capacity Progress Bars</div>
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:340px;">
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--color-text-secondary);">Hub Al-Sweifieh</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--color-brand-600);font-weight:600;">34%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:34%;background:var(--color-brand-600);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--color-text-secondary);">Hub Tabarbour</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--color-amber-600);font-weight:600;">72%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:72%;background:var(--color-amber-600);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--color-text-secondary);">Hub Jubaiha</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--color-danger-600);font-weight:600;">93%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:93%;background:var(--color-danger-600);"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav item -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-label">Sidebar Navigation Items</div>
+      <div style="background:linear-gradient(180deg,var(--color-brand-800),var(--color-brand-700));border-radius:var(--radius-lg);padding:8px;max-width:200px;">
+        <button class="nav-item active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Live Map
+        </button>
+        <button class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          Heat Map
+        </button>
+        <button class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35z"/></svg>
+          Hubs
+        </button>
+        <button class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          CO₂ Stats
+        </button>
+      </div>
+      <div style="margin-top:12px;font-size:10px;color:var(--color-text-disabled);">Focus ring: 2px solid rgba(255,255,255,0.4) inset. Active: font-weight 600, background rgba(255,255,255,0.15).</div>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-label">Stats Bar Cards</div>
+      <div class="grid-4">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--color-brand-100);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-brand-600)" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+          </div>
+          <div class="stat-value" style="color:var(--color-brand-600);font-family:var(--font-mono);">1,247<span style="font-size:12px;font-weight:400;color:var(--color-text-tertiary);margin-left:3px;">kg</span></div>
+          <div class="stat-label">CO₂ Saved</div>
+          <div class="stat-delta" style="color:var(--color-brand-600);">↑ 12% vs yesterday</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--color-amber-100);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-amber-600)" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          </div>
+          <div class="stat-value" style="color:var(--color-amber-600);font-family:var(--font-mono);">328<span style="font-size:12px;font-weight:400;color:var(--color-text-tertiary);margin-left:3px;">JD</span></div>
+          <div class="stat-label">Earnings</div>
+          <div class="stat-delta" style="color:var(--color-amber-600);">↑ 8% vs yesterday</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--color-oil-bg);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-oil)" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </div>
+          <div class="stat-value" style="color:var(--color-oil);font-family:var(--font-mono);">445<span style="font-size:12px;font-weight:400;color:var(--color-text-tertiary);margin-left:3px;">L</span></div>
+          <div class="stat-label">Cooking Oil</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--color-plastic-bg);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-plastic)" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <div class="stat-value" style="color:var(--color-plastic);font-family:var(--font-mono);">162<span style="font-size:12px;font-weight:400;color:var(--color-text-tertiary);margin-left:3px;">kg</span></div>
+          <div class="stat-label">Plastic</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order card -->
+    <div class="card">
+      <div class="card-label">Order Card (Rider Panel)</div>
+      <div style="max-width:260px;">
+        <div class="order-card" style="background:var(--color-oil-bg);border-color:rgba(200,134,10,0.2);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <span class="order-id" style="color:var(--color-oil);">ORD-2841</span>
+            <span class="badge badge--amber">In Transit</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-oil)" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            <span style="font-size:13px;font-weight:600;flex:1;color:var(--color-text-primary);">Cooking Oil</span>
+            <span style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--color-oil);">45 L</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span style="font-size:11px;color:var(--color-text-secondary);">Al-Balad, Downtown</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(200,134,10,0.15);">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--color-brand-600)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span style="font-family:var(--font-mono);font-size:10px;color:var(--color-brand-600);font-weight:500;">CO₂ 112.5 kg</span>
+            </div>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--color-amber-600);font-weight:700;">18.50 JD</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────
+       5. ANTI-PATTERNS
+  ─────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">05 — Anti-Patterns</div>
+    <h2 class="section-heading">What to Fix (AI Slop Checklist)</h2>
+    <p class="section-sub">These are the 10 specific patterns found in the current codebase that make the UI feel machine-generated. Fix these first before adding new features.</p>
+
+    <div class="warning-box">
+      <div class="warning-title">🚫 #1 — Raw hex colors inline on every element</div>
+      <div class="warning-body">Found 60+ instances of <code>color: "#1E5C35"</code>, <code>background: "#FEF3C7"</code>, etc. inline. <strong>Fix:</strong> Move all colors to CSS variables in <code>:root</code> or Tailwind tokens, then reference via <code>var(--color-brand-600)</code> or a Tailwind class. Three different "black" values are used: <code>#1a1a1a</code>, <code>#1A1A1A</code>, <code>"black"</code> — all should be <code>--color-text-primary: #111827</code>.</div>
+    </div>
+
+    <div class="warning-box">
+      <div class="warning-title">🚫 #2 — Font family repeated on every element</div>
+      <div class="warning-body"><code>fontFamily: "'DM Sans',sans-serif"</code> appears on ~60 individual elements. <strong>Fix:</strong> Set <code>font-family: var(--font-sans)</code> once on <code>body</code> in globals.css. Only override with <code>--font-mono</code> or <code>--font-ar</code> where needed.</div>
+    </div>
+
+    <div class="warning-box">
+      <div class="warning-title">🚫 #3 — Emoji used as a UI icon</div>
+      <div class="warning-body">In HeatMapPanel: <code>"🔥 Rider hotspots"</code> — emoji as a label prefix. <strong>Fix:</strong> Replace with a Lucide SVG icon (e.g. <code>&lt;Flame size={12} /&gt;</code>) or remove entirely and use text only. Emojis are platform-dependent, unstyled, and inaccessible.</div>
+    </div>
+
+    <div class="warning-box">
+      <div class="warning-title">🚫 #4 — Eyeballed font size scale (9px → 10px → 11px → 12px → 13px)</div>
+      <div class="warning-body">The current scale has 6 sizes within a 4px range with no system. 9px text (<code>BUILD 1.0.0</code>) is below any accessibility floor. <strong>Fix:</strong> Use only the 7 sizes in this design system: 10, 11, 13, 14, 16, 18, 22, 28px. The 9px sidebar footer text should be removed or raised to 10px.</div>
+    </div>
+
+    <div class="warning-box">
+      <div class="warning-title">🚫 #5 — Inconsistent border-radius across similar elements</div>
+      <div class="warning-body">Badges use <code>rounded-full</code>, cards use <code>rounded-xl</code> (16px), some divs use <code>rounded-lg</code> (12px), inputs use <code>rounded-lg</code> but checkboxes are unstyled. <strong>Fix:</strong> Enforce the radius system: pills = <code>--radius-full</code>, chips = <code>--radius-sm</code>, cards = <code>--radius-lg</code>, buttons/inputs = <code>--radius-md</code>.</div>
+    </div>
+
+    <div class="warning-box">
+      <div class="warning-title">🚫 #6 — No focus states on interactive elements</div>
+      <div class="warning-body">All buttons/nav-items have <code>transition-colors</code> but zero focus styles. Tab-navigating the dashboard is invisible. <strong>Fix:</strong> Add <code>:focus-visible { outline: 2px solid var(--color-brand-600); outline-offset: 2px; }</code> globally, and use <code>rgba(255,255,255,0.4)</code> version for the dark sidebar.</div>
+    </div>
+
+    <div class="warning-box">
+      <div class="warning-title">🚫 #7 — No aria-labels on icon-only and non-obvious buttons</div>
+      <div class="warning-body">The X close button, chevron expand/collapse buttons, and checkbox toggles in HubsPanel have no accessible label. <strong>Fix:</strong> Add <code>aria-label="Close rider detail"</code>, <code>aria-label="Expand hub details"</code>, <code>aria-label="Toggle hub active state"</code>.</div>
+    </div>
+
+    <div class="warning-box">
+      <div class="warning-title">🚫 #8 — Half-pixel spacing values (py-2.5, gap-1.5, mb-0.5)</div>
+      <div class="warning-body">Found <code>py-2.5</code>, <code>gap-1.5</code>, <code>mb-0.5</code>, <code>gap-0.5</code>, <code>mt-0.5</code> throughout. These 2px/6px values break the 4pt grid. <strong>Fix:</strong> Round to nearest 4pt token. 2px → 0, 6px → 8px, 10px → 8px or 12px.</div>
+    </div>
+
+    <div class="warning-box">
+      <div class="warning-title">🚫 #9 — Right panel widths are different (284px vs 300px)</div>
+      <div class="warning-body">RiderPanel is 284px, HubsPanel is 300px, HeatMapPanel is 300px — they all occupy the same layout slot. <strong>Fix:</strong> Unify to <code>--panel-width: 288px</code> so the layout doesn't shift when switching views.</div>
+    </div>
+
+    <div class="warning-box">
+      <div class="warning-title">🚫 #10 — CO₂ & Reports views are blank placeholders</div>
+      <div class="warning-body">Two of the five nav items lead to a <code>&lt;PlaceholderView&gt;</code>. This makes the nav feel broken. <strong>Fix:</strong> Either hide these nav items until ready (and add them progressively), or build them — see ideas below.</div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────
+       6. IDEAS FOR NEXT FEATURES
+  ─────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">06 — Feature Ideas</div>
+    <h2 class="section-heading">What to Build Next for Dawer</h2>
+    <p class="section-sub">Ideas that fit the product's mission and fill the current gaps — ordered by impact and effort.</p>
+
+    <div class="grid-2" style="gap:var(--space-4);">
+
+      <div class="idea-card">
+        <div class="idea-number">01</div>
+        <div class="idea-title">CO₂ Analytics View</div>
+        <div class="idea-desc">The CO₂ Stats placeholder should become a real analytics panel. Show: daily/weekly CO₂ trend (area chart), breakdown by material type (donut chart), district contribution bar chart, and a "CO₂ equivalent" counter (trees saved, car-km offset). Use DM Mono for all numbers. Color per material type already defined.</div>
+        <span class="idea-tag" style="background:var(--color-brand-50);color:var(--color-brand-600);">High Impact · Medium Effort</span>
+      </div>
+
+      <div class="idea-card">
+        <div class="idea-number">02</div>
+        <div class="idea-title">Reports Export Panel</div>
+        <div class="idea-desc">The Reports view should let admins export: rider performance table (orders, earnings, CO₂ per rider), hub shipment history, material collection summary by date range. Filters: date range picker, material type, district. Exports to CSV. Table has sortable columns with proper aria-sort.</div>
+        <span class="idea-tag" style="background:var(--color-amber-50);color:var(--color-amber-600);">High Impact · Medium Effort</span>
+      </div>
+
+      <div class="idea-card">
+        <div class="idea-number">03</div>
+        <div class="idea-title">Rider Assignment Flow</div>
+        <div class="idea-desc">Currently, orders are pre-assigned. Add a drag-to-assign interface in the Live Map view: new orders appear in a queue on the right panel; admin drags them onto a rider card or clicks "Assign". Idle riders should pulse on the map as an affordance.</div>
+        <span class="idea-tag" style="background:var(--color-plastic-bg);color:var(--color-plastic);">Medium Impact · High Effort</span>
+      </div>
+
+      <div class="idea-card">
+        <div class="idea-number">04</div>
+        <div class="idea-title">Hub Shipment Scheduler</div>
+        <div class="idea-desc">The hubs panel has a "Schedule Shipment" button but no calendar. Add an inline mini-calendar (already imported with react-day-picker) to pick a date. Show upcoming shipments as a timeline strip below the hub list. Color-code: amber = scheduled, green = shipped, red = overdue.</div>
+        <span class="idea-tag" style="background:var(--color-brand-50);color:var(--color-brand-600);">Medium Impact · Low Effort</span>
+      </div>
+
+      <div class="idea-card">
+        <div class="idea-number">05</div>
+        <div class="idea-title">District Detail Drawer</div>
+        <div class="idea-desc">When a district is selected on the Heat Map, slide in a drawer (not a panel) with: CO₂ potential vs achieved chart, top materials, recent orders in that district, and a "Boost Coverage" button that assigns an idle rider to the district. Drawer slides in from right over the map (uses react-resizable-panels already installed).</div>
+        <span class="idea-tag" style="background:var(--color-ewaste-bg);color:var(--color-ewaste);">Medium Impact · Medium Effort</span>
+      </div>
+
+      <div class="idea-card">
+        <div class="idea-number">06</div>
+        <div class="idea-title">Global Search (⌘K)</div>
+        <div class="idea-desc">A command palette that lets the admin search riders by name, order by ID, hub by district. cmdk is already installed. Press ⌘K or Ctrl+K to open. Results grouped by type. Selecting a rider opens their panel; selecting an order centers the map on it. This is the fastest way to navigate dense operational data.</div>
+        <span class="idea-tag" style="background:var(--color-brand-50);color:var(--color-brand-600);">High Impact · Low Effort</span>
+      </div>
+
+      <div class="idea-card">
+        <div class="idea-number">07</div>
+        <div class="idea-title">Notifications / Alert Feed</div>
+        <div class="idea-desc">A bell icon in the header with a dropdown feed. Alerts: hub at 90% capacity, rider idle for 30min, order pending for 15min, shipment due today. Each alert has a 1-click action. Use sonner (already installed) for live toast alerts. Badge count on bell clears when opened.</div>
+        <span class="idea-tag" style="background:var(--color-amber-50);color:var(--color-amber-600);">High Impact · Low Effort</span>
+      </div>
+
+      <div class="idea-card">
+        <div class="idea-number">08</div>
+        <div class="idea-title">Dark Mode</div>
+        <div class="idea-desc">next-themes is already installed. The sidebar's dark green (#06402B) becomes the base surface color. The main content area uses #0F1A14. Cards use #152219. This is a natural dark mode because the brand color IS dark. All token values need a dark-mode override — do not invert, use tonal variants.</div>
+        <span class="idea-tag" style="background:#1A1A1A;color:#CBD5E1;">Medium Impact · Medium Effort</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────
+       7. DO / DON'T RULES
+  ─────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">07 — Rules of Thumb</div>
+    <h2 class="section-heading">Do / Don't for Dawer</h2>
+
+    <div class="do-dont">
+      <div>
+        <div class="do-box">
+          <div class="do-tag">✓ Do</div>
+          Use <code>var(--color-brand-600)</code> everywhere you need the primary green.
+        </div>
+      </div>
+      <div>
+        <div class="dont-box">
+          <div class="dont-tag">✗ Don't</div>
+          Write <code>color: "#1E5C35"</code> or <code>color: "#166534"</code> or <code>color: "green"</code> directly in a component.
+        </div>
+      </div>
+
+      <div>
+        <div class="do-box">
+          <div class="do-tag">✓ Do</div>
+          Use Lucide icons (<code>&lt;Flame /&gt;</code>, <code>&lt;Warehouse /&gt;</code>) consistently at 14px or 16px.
+        </div>
+      </div>
+      <div>
+        <div class="dont-box">
+          <div class="dont-tag">✗ Don't</div>
+          Use 🔥 or any emoji as a structural or navigation icon.
+        </div>
+      </div>
+
+      <div>
+        <div class="do-box">
+          <div class="do-tag">✓ Do</div>
+          Label every icon-only button: <code>aria-label="Close panel"</code>.
+        </div>
+      </div>
+      <div>
+        <div class="dont-box">
+          <div class="dont-tag">✗ Don't</div>
+          Render a bare <code>&lt;X size={14} /&gt;</code> button with no accessible label.
+        </div>
+      </div>
+
+      <div>
+        <div class="do-box">
+          <div class="do-tag">✓ Do</div>
+          All numbers, IDs, times, and monetary values use <code>font-family: var(--font-mono)</code>.
+        </div>
+      </div>
+      <div>
+        <div class="dont-box">
+          <div class="dont-tag">✗ Don't</div>
+          Mix DM Sans and DM Mono within the same stat or data field.
+        </div>
+      </div>
+
+      <div>
+        <div class="do-box">
+          <div class="do-tag">✓ Do</div>
+          The right panel is always exactly <code>--panel-width: 288px</code> regardless of which view is active.
+        </div>
+      </div>
+      <div>
+        <div class="dont-box">
+          <div class="dont-tag">✗ Don't</div>
+          Set RiderPanel to 284px and HubsPanel to 300px — the layout shift between views is jarring.
+        </div>
+      </div>
+
+      <div>
+        <div class="do-box">
+          <div class="do-tag">✓ Do</div>
+          Use the MATERIAL_CONFIG object for all material colors — it's the single source of truth.
+        </div>
+      </div>
+      <div>
+        <div class="dont-box">
+          <div class="dont-tag">✗ Don't</div>
+          Hardcode <code>#1E40AF</code> for plastic in a new component — use <code>MATERIAL_CONFIG["Plastic Bottles"].color</code>.
+        </div>
+      </div>
+
+      <div>
+        <div class="do-box">
+          <div class="do-tag">✓ Do</div>
+          Empty/placeholder views show a meaningful state: icon + title + what's coming + ETA.
+        </div>
+      </div>
+      <div>
+        <div class="dont-box">
+          <div class="dont-tag">✗ Don't</div>
+          Show "Charts and analytics coming soon" in the nav as a dead end with no context.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center;padding:var(--space-8) 0 var(--space-4);border-top:1px solid var(--color-border);margin-top:var(--space-8);">
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-disabled);letter-spacing:0.1em;">DAWER DESIGN SYSTEM · v1.0 · AMMAN · JO</div>
+  </div>
+
+</div>
+</body>
+</html>

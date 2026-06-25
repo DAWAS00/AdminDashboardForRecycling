@@ -1,3 +1,11 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+@import './globals.css';
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  line-height: 1.5;
+}

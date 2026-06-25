@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Plus, BarChart2, FileText } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { ViewId, Hub, HeatMapViewMode, MaterialFilter, ActiveRoute, CompletedTrip } from "./types";
 import { RIDERS, ONLINE_COUNT, INITIAL_HUBS, HUB_STATUS_CONFIG, DISTRICTS, STATUS_CONFIG } from "./constants";
@@ -17,9 +17,9 @@ import { HubsMapLayer } from "./components/HubsMapLayer";
 import { HubsPanel } from "./components/HubsPanel";
 import { AddHubModal } from "./components/AddHubModal";
 import { StatsBar } from "./components/StatsBar";
-import { PlaceholderView } from "./components/PlaceholderView";
+import { PartnersView } from "./components/partners/PartnersView";
 import { RouteLayer } from "./components/RouteLayer";
-import { ReportsView } from "./components/ReportsView";
+import { ReportsScreen } from "./components/reports/ReportsScreen";
 
 export default function App() {
   const [activeView, setActiveView]     = useState<ViewId>("map");
@@ -140,7 +140,7 @@ export default function App() {
     map: "Live Operations Map",
     heatmap: "CO₂ Savings Heat Map",
     hubs: "Collection Hub Management",
-    co2: "CO₂ Statistics",
+    partners: "Partners & Rewards",
     reports: "Reports",
   };
 
@@ -148,7 +148,7 @@ export default function App() {
     map: `Amman, Jordan — tracking ${ONLINE_COUNT} active riders`,
     heatmap: "District-level CO₂ savings potential across Amman",
     hubs: `${hubs.filter(h => h.active).length} active hubs · ${hubs.filter(h => h.status === "ready").length} ready to ship`,
-    co2: "",
+    partners: "Manage partner tiers, contracts, and rewards",
     reports: "",
   };
 
@@ -309,10 +309,8 @@ export default function App() {
               </>
             )}
 
-            {activeView === "co2" && <PlaceholderView icon={BarChart2} title="CO₂ Statistics" desc="Charts and analytics coming soon" />}
-            {activeView === "reports" && (
-              <ReportsView completedTrips={completedTrips} />
-            )}
+            {activeView === "partners" && <PartnersView />}
+            {activeView === "reports" && <ReportsScreen />}
           </div>
 
           {/* Right panel */}

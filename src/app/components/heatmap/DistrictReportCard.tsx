@@ -1,0 +1,211 @@
+import { Wind, Share2, ChevronLeft } from "lucide-react";
+import { District, Rider } from "../../types";
+import { co2Equivalents } from "../../helpers";
+
+interface DistrictReportCardProps {
+  district: District;
+  onBack: () => void;
+  idleRiders: Rider[];
+}
+
+export function DistrictReportCard({ district, onBack, idleRiders }: DistrictReportCardProps) {
+  const gap        = district.co2Potential - district.co2Achieved;
+  const achievedPct = Math.round((district.co2Achieved / district.co2Potential) * 100);
+  const gapPct      = 100 - achievedPct;
+  const equiv       = co2Equivalents(district.co2Achieved);
+
+  const MATERIAL_KEYS = [
+    { key: "cookingOil" as const,  label: "Cooking Oil",       color: "var(--color-oil)",     bg: "var(--color-oil-bg)"     },
+    { key: "plastic"    as const,  label: "Plastic Bottles",   color: "var(--color-plastic)", bg: "var(--color-plastic-bg)" },
+    { key: "paper"      as const,  label: "Paper & Cardboard", color: "var(--color-paper)",   bg: "var(--color-paper-bg)"   },
+    { key: "electronics"as const,  label: "Electronics",       color: "var(--color-ewaste)",  bg: "var(--color-ewaste-bg)"  },
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflowY: "auto" }}>
+      {/* Header */}
+      <div
+        style={{
+          padding: "12px 16px",
+          background: "var(--color-surface-card)",
+          borderBottom: "1px solid var(--color-border)",
+          flexShrink: 0,
+        }}
+      >
+        <button
+          onClick={onBack}
+          aria-label="Back to district list"
+          style={{
+            display: "flex", alignItems: "center", gap: 4,
+            background: "transparent", border: "none", cursor: "pointer",
+            fontSize: 11, color: "var(--color-text-tertiary)", marginBottom: 6,
+            padding: 0,
+          }}
+        >
+          <ChevronLeft size={12} />
+          All Districts
+        </button>
+        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text-primary)" }}>
+          {district.name}
+        </div>
+        <div style={{ fontSize: 11, color: "var(--color-text-tertiary)", marginTop: 2 }}>
+          {district.orderCount} active orders
+        </div>
+      </div>
+
+      {/* CO₂ progress */}
+      <div
+        style={{
+          padding: "12px 16px",
+          background: "var(--color-surface-card)",
+          borderBottom: "1px solid var(--color-border)",
+        }}
+      >
+        <div style={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+          CO₂ Savings
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+          <div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 20, fontWeight: 700, color: "var(--color-brand-600)" }}>
+              {district.co2Achieved.toLocaleString()}
+              <span style={{ fontSize: 11, fontWeight: 400, color: "var(--color-text-tertiary)", marginLeft: 3 }}>kg</span>
+            </div>
+            <div style={{ fontSize: 10, color: "var(--color-text-tertiary)" }}>achieved</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 16, fontWeight: 600, color: "var(--color-text-secondary)" }}>
+              {gap.toLocaleString()}
+              <span style={{ fontSize: 11, fontWeight: 400, marginLeft: 3 }}>kg</span>
+            </div>
+            <div style={{ fontSize: 10, color: "var(--color-text-tertiary)" }}>{gapPct}% unrealized</div>
+          </div>
+        </div>
+        <div style={{ height: 8, borderRadius: "var(--radius-full)", background: "var(--color-border)", overflow: "hidden" }}>
+          <div style={{ height: "100%", width: `${achievedPct}%`, borderRadius: "var(--radius-full)", background: "var(--color-brand-600)" }} />
+        </div>
+      </div>
+
+      {/* Zone assignment — only show if there are idle riders */}
+      {idleRiders.length > 0 && (
+        <div
+          style={{
+            padding: "12px 16px",
+            background: "var(--color-brand-50)",
+            borderBottom: "1px solid var(--color-brand-100)",
+          }}
+        >
+          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--color-brand-600)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+            Assign a Rider
+          </div>
+          {idleRiders.slice(0, 2).map(rider => (
+            <div
+              key={rider.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "6px 0",
+                borderBottom: "1px solid var(--color-brand-100)",
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-primary)" }}>{rider.name}</div>
+                <div style={{ fontSize: 10, color: "var(--color-text-tertiary)" }}>{rider.vehicle} · Idle</div>
+              </div>
+              <button
+                aria-label={`Assign ${rider.name} to ${district.name}`}
+                onClick={() => {
+                  // Phase 2: dispatch assignment action
+                  // For now: show a browser toast as confirmation
+                  alert(`${rider.name} assigned to ${district.name} (Phase 2 will wire this to real dispatch)`);
+                }}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: "var(--radius-sm)",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  background: "var(--color-brand-600)",
+                  color: "white",
+                }}
+              >
+                Assign →
+              </button>
+            </div>
+          ))}
+          {idleRiders.length > 2 && (
+            <div style={{ fontSize: 10, color: "var(--color-text-tertiary)", marginTop: 4 }}>
+              +{idleRiders.length - 2} more idle riders available
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Material breakdown */}
+      <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--color-border)" }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+          By Material
+        </div>
+        {MATERIAL_KEYS.map(({ key, label, color, bg }) => {
+          const mat = district.materialBreakdown[key];
+          const pct = mat.potential > 0 ? Math.round((mat.achieved / mat.potential) * 100) : 0;
+          return (
+            <div key={key} style={{ marginBottom: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                <span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>{label}</span>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color }}>
+                    {mat.achieved} kg
+                  </span>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--color-text-disabled)" }}>
+                    / {mat.potential}
+                  </span>
+                </div>
+              </div>
+              <div style={{ height: 5, borderRadius: "var(--radius-full)", background: "var(--color-border)", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${pct}%`, borderRadius: "var(--radius-full)", background: color }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* CO₂ equivalents */}
+      <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--color-border)" }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+          Impact Equivalents
+        </div>
+        {[
+          { label: "Trees planted (1yr)", value: `≈ ${equiv.trees}` },
+          { label: "Car-km avoided",     value: `≈ ${equiv.carKm.toLocaleString()} km` },
+          { label: "Flights saved",      value: `≈ ${equiv.flights}` },
+        ].map(({ label, value }) => (
+          <div key={label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>{label}</span>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--color-brand-600)" }}>{value}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Share button (Phase 2 — disabled placeholder) */}
+      <div style={{ padding: "12px 16px" }}>
+        <button
+          disabled
+          title="Share feature coming in Phase 2"
+          style={{
+            width: "100%", padding: "8px 0",
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--color-border)",
+            background: "transparent", cursor: "not-allowed",
+            fontSize: 12, fontWeight: 600, color: "var(--color-text-disabled)",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          }}
+        >
+          <Share2 size={12} />
+          Share Report (Phase 2)
+        </button>
+      </div>
+    </div>
+  );
+}
