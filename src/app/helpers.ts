@@ -11,7 +11,8 @@ import {
   CO2_EQUIVALENTS,
   MATERIAL_DELIVERY_ESTIMATE_MS,
   IDLE_WARNING_MS,
-  IDLE_CRITICAL_MS
+  IDLE_CRITICAL_MS,
+  HistoryMetricKey
 } from "./constants";
 
 export function districtFillColor(d: District): string {
@@ -254,4 +255,96 @@ export function hasFleetAlerts(riders: Rider[]): boolean {
     if (idleElapsedMs(r) >= IDLE_CRITICAL_MS) return true;
     return false;
   });
+}
+
+// ── Stats bar drill-down helpers ─────────────────────────────────────────────
+
+/**
+ * Returns all non-pending orders that contribute to a given metric,
+ * sorted by the metric value descending (highest first).
+ *
+ * metric = "co2"      → all riders, all orders, sorted by co2Saved desc
+ * metric = "earnings" → all riders, all orders, sorted by earnings desc
+ * metric = material   → all riders, only orders matching that material, sorted by quantity desc
+ */
+export function buildMetricOrderRows(
+  riders: Rider[],
+  metric: HistoryMetricKey
+) {
+  type Row = {
+    riderId:     number;
+    riderName:   string;
+    riderStatus: Rider["status"];
+    orderId:     string;
+    material:    string;
+    quantity:    number;
+    unit:        string;
+    co2Saved:    number;
+    earnings:    number;
+    orderStatus: Order["status"];
+  };
+
+  const rows: Row[] = [];
+
+  for (const rider of riders) {
+    for (const order of rider.orders) {
+      if (order.status === "pending") continue;
+      // For material tiles, skip orders of other materials
+      if (
+        metric !== "co2" &&
+        metric !== "earnings" &&
+        order.material !== metric
+      ) continue;
+
+      rows.push({
+        riderId:     rider.id,
+        riderName:   rider.name,
+        riderStatus: rider.status,
+        orderId:     order.id,
+        material:    order.material,
+        quantity:    order.quantity,
+        unit:        order.unit,
+        co2Saved:    order.co2Saved,
+        earnings:    order.earnings,
+        orderStatus: order.status,
+      });
+    }
+  }
+
+  if (metric === "co2")           rows.sort((a, b) => b.co2Saved  - a.co2Saved);
+  else if (metric === "earnings") rows.sort((a, b) => b.earnings  - a.earnings);
+  else                            rows.sort((a, b) => b.quantity  - a.quantity);
+
+  return rows;
+}
+
+/**
+ * For CO₂ or Earnings tiles: returns how much each material contributed
+ * as a percentage of today's total. Used for the stacked composition bar.
+ */
+export function computeMaterialComposition(
+  riders: Rider[],
+  mode: "co2" | "earnings"
+): { material: string; value: number; pct: number; color: string }[] {
+  const totals: Record<string, number> = {};
+
+  for (const rider of riders) {
+    for (const order of rider.orders) {
+      if (order.status === "pending") continue;
+      const v = mode === "co2" ? order.co2Saved : order.earnings;
+      totals[order.material] = (totals[order.material] ?? 0) + v;
+    }
+  }
+
+  const grand = Object.values(totals).reduce((s, v) => s + v, 0) || 1;
+
+  return Object.entries(totals)
+    .map(([material, value]) => ({
+      material,
+      value,
+      pct:   Math.round((value / grand) * 100),
+      color: MATERIAL_CONFIG[material as keyof typeof MATERIAL_CONFIG]?.color
+             ?? "var(--text-tertiary)",
+    }))
+    .sort((a, b) => b.value - a.value);
 }
