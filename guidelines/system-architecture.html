@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dawer — Recycling Ecosystem Architecture</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0b1120;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 32px 24px 48px;
+  }
+
+  /* ── Header ── */
+  .page-header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .page-header h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #f0fdf4;
+    letter-spacing: 0.5px;
+  }
+  .page-header .sub {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 6px;
+  }
+  .page-header .stack-pills {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid;
+  }
+  .pill.flutter  { background: #0d2d52; border-color: #3b82f6; color: #93c5fd; }
+  .pill.supabase { background: #0a2e1a; border-color: #22c55e; color: #86efac; }
+  .pill.pays     { background: #1c1106; border-color: #f59e0b; color: #fcd34d; }
+  .pill.react    { background: #1a0a2e; border-color: #a855f7; color: #d8b4fe; }
+
+  /* ── Main layout: 3 columns ── */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 220px 1fr 220px;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* ── Columns ── */
+  .col { display: flex; flex-direction: column; gap: 12px; }
+
+  /* ── Layer Cards ── */
+  .layer-card {
+    border-radius: 14px;
+    border: 1px solid;
+    overflow: hidden;
+  }
+  .layer-card .card-head {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .layer-card .card-head .icon { font-size: 16px; }
+  .layer-card .card-head h3 { font-size: 12px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; }
+  .layer-card .card-head .sub { font-size: 10px; opacity: 0.6; margin-top: 1px; }
+  .layer-card .card-body { padding: 10px 12px; }
+
+  /* Flutter (blue) */
+  .card-flutter { background: #060e1f; border-color: #1d4ed8; }
+  .card-flutter .card-head { background: #0d2040; }
+  .card-flutter .card-head h3 { color: #93c5fd; }
+
+  /* Supabase (green) */
+  .card-supabase { background: #040f08; border-color: #16a34a; }
+  .card-supabase .card-head { background: #052810; }
+  .card-supabase .card-head h3 { color: #86efac; }
+
+  /* Payment (amber) */
+  .card-payment { background: #120b00; border-color: #d97706; }
+  .card-payment .card-head { background: #1c1106; }
+  .card-payment .card-head h3 { color: #fcd34d; }
+
+  /* Dashboard (purple) */
+  .card-dashboard { background: #0f0a1e; border-color: #7c3aed; }
+  .card-dashboard .card-head { background: #160d2e; }
+  .card-dashboard .card-head h3 { color: #d8b4fe; }
+
+  /* ── User Type Badges ── */
+  .user-badge {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    border: 1px solid #1e3a5f;
+    background: #091828;
+  }
+  .user-badge:last-child { margin-bottom: 0; }
+  .user-badge .u-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .user-badge .u-name { font-size: 12px; font-weight: 700; color: #e2e8f0; }
+  .user-badge .u-actions { font-size: 10px; color: #64748b; margin-top: 2px; line-height: 1.4; }
+
+  /* ── App Feature Tags ── */
+  .feature-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .ftag {
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #0d2040;
+    border: 1px solid #1d4ed8;
+    color: #93c5fd;
+  }
+
+  /* ── Supabase Table List ── */
+  .sb-table {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    background: #071508;
+    border: 1px solid #14532d;
+  }
+  .sb-table:last-child { margin-bottom: 0; }
+  .sb-table .db-icon { font-size: 14px; flex-shrink: 0; }
+  .sb-table .t-name { font-size: 12px; font-weight: 700; color: #86efac; }
+  .sb-table .t-desc { font-size: 10px; color: #4b7a5a; margin-top: 1px; }
+
+  /* ── Supabase Services Row ── */
+  .sb-services {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .sb-service {
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: #071508;
+    border: 1px solid #14532d;
+    text-align: center;
+  }
+  .sb-service .svc-name { font-size: 11px; font-weight: 700; color: #4ade80; }
+  .sb-service .svc-desc { font-size: 10px; color: #4b7a5a; margin-top: 2px; }
+
+  /* ── Dashboard Views ── */
+  .dash-view {
+    padding: 8px 10px;
+    border-radius: 9px;
+    margin-bottom: 6px;
+    border: 1px solid;
+    position: relative;
+  }
+  .dash-view:last-child { margin-bottom: 0; }
+  .dash-view .dv-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .dash-view .dv-icon { font-size: 14px; }
+  .dash-view .dv-name { font-size: 12px; font-weight: 700; }
+  .dash-view .dv-reads { font-size: 10px; color: #64748b; }
+  .dv-tables { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+  .dv-tag {
+    padding: 1px 7px;
+    border-radius: 20px;
+    font-size: 9px;
+    font-weight: 700;
+  }
+  .dv-tag.read  { background: #0a2e1a; border: 1px solid #16a34a; color: #86efac; }
+  .dv-tag.write { background: #1c1106; border: 1px solid #d97706; color: #fcd34d; }
+  .dv-tag.rt    { background: #0c0a30; border: 1px solid #6366f1; color: #a5b4fc; }
+
+  .dash-view.map     { background: #0a1020; border-color: #1e40af; }
+  .dash-view.map     .dv-name { color: #93c5fd; }
+  .dash-view.heat    { background: #140a00; border-color: #d97706; }
+  .dash-view.heat    .dv-name { color: #fcd34d; }
+  .dash-view.hubs    { background: #0a2000; border-color: #22c55e; }
+  .dash-view.hubs    .dv-name { color: #86efac; }
+  .dash-view.partner { background: #14001a; border-color: #a855f7; }
+  .dash-view.partner .dv-name { color: #d8b4fe; }
+  .dash-view.reports { background: #001a14; border-color: #14b8a6; }
+  .dash-view.reports .dv-name { color: #5eead4; }
+
+  /* ── Super Pays ── */
+  .pays-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pays-step {
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: #120b00;
+    border: 1px solid #92400e;
+    font-size: 11px;
+    color: #fcd34d;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pays-step .s-num {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #92400e;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pays-capability {
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #1c1106;
+    border: 1px solid #92400e;
+    font-size: 10px;
+    color: #92400e;
+    color: #d97706;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  /* ── Center column: Supabase main card ── */
+  .supabase-main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* ── Security footer ── */
+  .security-bar {
+    max-width: 1200px;
+    margin: 24px auto 0;
+    background: #060c14;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .security-bar .lock { font-size: 14px; }
+  .security-bar p { font-size: 11px; color: #475569; }
+  .security-bar strong { color: #64748b; }
+
+  /* ── Integration Points ── */
+  .integration-section {
+    max-width: 1200px;
+    margin: 20px auto 0;
+  }
+  .integration-section h2 {
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .int-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .int-card {
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid #1e293b;
+    background: #080e1a;
+  }
+  .int-card .int-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .int-card .int-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .int-card .int-title { font-size: 12px; font-weight: 700; color: #e2e8f0; }
+  .int-card p { font-size: 11px; color: #64748b; line-height: 1.5; }
+  .int-card code { font-family: monospace; font-size: 10px; color: #86efac; background: #071508; padding: 1px 5px; border-radius: 4px; }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #64748b; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* arrows between columns via border tricks */
+  .arrow-right {
+    text-align: center;
+    font-size: 18px;
+    color: #1e3a5f;
+    line-height: 1;
+    padding: 4px 0;
+  }
+  .flow-arrows {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: 20px 0;
+  }
+  .flow-arrow-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .fa-line {
+    flex: 1; height: 1px; background: #1e3a5f;
+  }
+  .fa-label {
+    font-size: 9px;
+    color: #334155;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #0d1826;
+    border: 1px solid #1e3a5f;
+  }
+  .fa-arrow { color: #22c55e; font-size: 12px; }
+
+  .divider { height: 1px; background: #0f1e2e; margin: 6px 0; }
+
+  .impl-note {
+    font-size: 10px;
+    color: #374151;
+    font-style: italic;
+    margin-top: 6px;
+  }
+
+  .badge-current {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 20px;
+    font-size: 9px;
+    font-weight: 700;
+    background: #1c0a2e;
+    border: 1px solid #7c3aed;
+    color: #a78bfa;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .badge-planned {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 20px;
+    font-size: 9px;
+    font-weight: 700;
+    background: #1a0f00;
+    border: 1px solid #78350f;
+    color: #92400e;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ Header ══════════════════════════════════════════════════════════════ -->
+<div class="page-header">
+  <h1>♻️ Dawer — Recycling Ecosystem Architecture</h1>
+  <p class="sub">Full system overview · Flutter App + Supabase + Admin Dashboard + Super Pays</p>
+  <div class="stack-pills">
+    <span class="pill flutter">📱 Flutter (Mobile App)</span>
+    <span class="pill supabase">⚡ Supabase (Backend)</span>
+    <span class="pill pays">💳 Super Pays (Payments)</span>
+    <span class="pill react">🖥️ React Admin Dashboard</span>
+  </div>
+</div>
+
+<!-- ══ Legend ══════════════════════════════════════════════════════════════ -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#86efac"></div> READ from Supabase</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#fcd34d"></div> WRITE / Edge Function</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a5b4fc"></div> REALTIME subscription</div>
+  <div class="legend-item"><span style="font-size:12px">🔵</span> Implemented (mock data)</div>
+  <div class="legend-item"><span style="font-size:12px">🟠</span> Planned (Supabase integration)</div>
+</div>
+
+<!-- ══ 3-Column Grid ═══════════════════════════════════════════════════════ -->
+<div class="arch-grid">
+
+  <!-- ──── LEFT: Flutter App ──────────────────────────────────────────── -->
+  <div class="col">
+
+    <div class="layer-card card-flutter">
+      <div class="card-head">
+        <span class="icon">📱</span>
+        <div>
+          <h3>Flutter App</h3>
+          <div class="sub">supabase_flutter SDK</div>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <div class="user-badge">
+          <span class="u-icon">🧑</span>
+          <div>
+            <div class="u-name">Individual Supplier</div>
+            <div class="u-actions">Sell / Buy materials<br>Share listings</div>
+          </div>
+        </div>
+
+        <div class="user-badge">
+          <span class="u-icon">🍽️</span>
+          <div>
+            <div class="u-name">Restaurant</div>
+            <div class="u-actions">Sell surplus materials<br>Purchase supplies</div>
+          </div>
+        </div>
+
+        <div class="user-badge">
+          <span class="u-icon">🛵</span>
+          <div>
+            <div class="u-name">Rider</div>
+            <div class="u-actions">Accept orders · Track deliveries<br>Real-time GPS broadcast</div>
+          </div>
+        </div>
+
+        <div class="user-badge">
+          <span class="u-icon">🏭</span>
+          <div>
+            <div class="u-name">Recycling Company</div>
+            <div class="u-actions">Bulk purchase · Post rider jobs<br>Subscribe to plans</div>
+          </div>
+        </div>
+
+        <div class="divider" style="margin-top:10px"></div>
+        <div class="feature-tags" style="margin-top:8px">
+          <span class="ftag">Auth (OAuth · JWT)</span>
+          <span class="ftag">Order Management</span>
+          <span class="ftag">GPS Realtime</span>
+          <span class="ftag">Push Notifications</span>
+          <span class="ftag">Super Pays SDK</span>
+          <span class="ftag">Offline Support</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Super Pays -->
+    <div class="layer-card card-payment">
+      <div class="card-head">
+        <span class="icon">💳</span>
+        <div>
+          <h3>Super Pays</h3>
+          <div class="sub">REST API · Webhook</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="pays-capability">Cards · Wallets · Bank Transfer · Subscriptions</div>
+        <div style="height:8px"></div>
+        <div class="pays-flow">
+          <div class="pays-step"><span class="s-num">1</span>Payment Request from App</div>
+          <div class="pays-step"><span class="s-num">2</span>Super Pays processes</div>
+          <div class="pays-step"><span class="s-num">3</span>Webhook → Supabase Edge Fn</div>
+          <div class="pays-step"><span class="s-num">4</span>orders.payment_status updated</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /col left -->
+
+
+  <!-- ──── CENTER: Supabase ────────────────────────────────────────────── -->
+  <div class="col">
+    <div class="layer-card card-supabase" style="flex:1">
+      <div class="card-head">
+        <span class="icon">⚡</span>
+        <div>
+          <h3>Supabase</h3>
+          <div class="sub">PostgreSQL + Realtime + Auth + Storage</div>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
+
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#4b7a5a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Core Tables</div>
+
+            <div class="sb-table">
+              <span class="db-icon">🗄️</span>
+              <div>
+                <div class="t-name">users</div>
+                <div class="t-desc">Auth · roles · ratings</div>
+              </div>
+            </div>
+
+            <div class="sb-table">
+              <span class="db-icon">🗄️</span>
+              <div>
+                <div class="t-name">orders</div>
+                <div class="t-desc">Status · pricing · timeline</div>
+              </div>
+            </div>
+
+            <div class="sb-table">
+              <span class="db-icon">🗄️</span>
+              <div>
+                <div class="t-name">materials</div>
+                <div class="t-desc">Listings · inventory · pricing</div>
+              </div>
+            </div>
+
+            <div class="sb-table">
+              <span class="db-icon">🗄️</span>
+              <div>
+                <div class="t-name">deliveries</div>
+                <div class="t-desc">Rider assignments · routes · GPS</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#4b7a5a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Business Tables</div>
+
+            <div class="sb-table">
+              <span class="db-icon">🗄️</span>
+              <div>
+                <div class="t-name">payments</div>
+                <div class="t-desc">Transactions · invoices · refunds</div>
+              </div>
+            </div>
+
+            <div class="sb-table">
+              <span class="db-icon">🗄️</span>
+              <div>
+                <div class="t-name">subscriptions</div>
+                <div class="t-desc">Plans · billing cycles · features</div>
+              </div>
+            </div>
+
+            <div class="sb-table">
+              <span class="db-icon">🗄️</span>
+              <div>
+                <div class="t-name">companies</div>
+                <div class="t-desc">Profiles · verification · jobs</div>
+              </div>
+            </div>
+
+            <div class="sb-table">
+              <span class="db-icon">🗄️</span>
+              <div>
+                <div class="t-name">analytics</div>
+                <div class="t-desc">CO₂ data · heat maps · reports</div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /tables grid -->
+
+        <div class="divider" style="margin:12px 0"></div>
+
+        <div style="font-size:10px;font-weight:700;color:#4b7a5a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Supabase Services</div>
+        <div class="sb-services">
+          <div class="sb-service">
+            <div class="svc-name">🔐 Auth</div>
+            <div class="svc-desc">OAuth · Email · Phone · JWT</div>
+          </div>
+          <div class="sb-service">
+            <div class="svc-name">⚡ Realtime</div>
+            <div class="svc-desc">Live orders · GPS · notifications</div>
+          </div>
+          <div class="sb-service">
+            <div class="svc-name">🗃️ Storage</div>
+            <div class="svc-desc">Images · docs · receipts</div>
+          </div>
+          <div class="sb-service">
+            <div class="svc-name">⚙️ Edge Functions</div>
+            <div class="svc-desc">Business logic · webhooks</div>
+          </div>
+        </div>
+
+        <div class="divider" style="margin:12px 0"></div>
+
+        <div style="font-size:10px;font-weight:700;color:#4b7a5a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Security Model</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+          <div class="sb-service">
+            <div class="svc-name" style="color:#a5b4fc">RLS Policies</div>
+            <div class="svc-desc">Per-role row-level access<br>enforced in PostgreSQL</div>
+          </div>
+          <div class="sb-service">
+            <div class="svc-name" style="color:#fcd34d">service_role key</div>
+            <div class="svc-desc">Admin Dashboard reads<br>bypass RLS safely</div>
+          </div>
+        </div>
+
+      </div><!-- /card-body -->
+    </div>
+  </div><!-- /col center -->
+
+
+  <!-- ──── RIGHT: Admin Dashboard ─────────────────────────────────────── -->
+  <div class="col">
+
+    <div class="layer-card card-dashboard">
+      <div class="card-head">
+        <span class="icon">🖥️</span>
+        <div>
+          <h3>Admin Dashboard</h3>
+          <div class="sub">React · TypeScript · Vite · Tailwind</div>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <!-- Live Map View -->
+        <div class="dash-view map">
+          <div class="dv-head">
+            <span class="dv-icon">🗺️</span>
+            <span class="dv-name">Live Map <span class="badge-current">current</span></span>
+          </div>
+          <div class="dv-reads">Rider positions, active orders, routes</div>
+          <div class="dv-tables">
+            <span class="dv-tag rt">deliveries · GPS</span>
+            <span class="dv-tag read">orders</span>
+            <span class="dv-tag read">users (riders)</span>
+          </div>
+          <div class="impl-note">→ Replace RIDERS constant with <code>supabase.from('deliveries').select()</code> + Realtime subscription</div>
+        </div>
+
+        <!-- Heat Map View -->
+        <div class="dash-view heat">
+          <div class="dv-head">
+            <span class="dv-icon">🔥</span>
+            <span class="dv-name">Heat Map <span class="badge-current">current</span></span>
+          </div>
+          <div class="dv-reads">District CO₂ potential, material demand</div>
+          <div class="dv-tables">
+            <span class="dv-tag read">analytics</span>
+            <span class="dv-tag read">orders (by district)</span>
+          </div>
+          <div class="impl-note">→ Replace DISTRICTS constant with <code>analytics</code> aggregated by district</div>
+        </div>
+
+        <!-- Hubs View -->
+        <div class="dash-view hubs">
+          <div class="dv-head">
+            <span class="dv-icon">🏠</span>
+            <span class="dv-name">Hubs <span class="badge-current">current</span></span>
+          </div>
+          <div class="dv-reads">Hub locations, capacity, schedule</div>
+          <div class="dv-tables">
+            <span class="dv-tag read">companies (hubs)</span>
+            <span class="dv-tag write">Edge Fn: assign rider</span>
+          </div>
+          <div class="impl-note">→ Replace INITIAL_HUBS with <code>companies</code> where type='hub'</div>
+        </div>
+
+        <!-- Partners View -->
+        <div class="dash-view partner">
+          <div class="dv-head">
+            <span class="dv-icon">🤝</span>
+            <span class="dv-name">Partners <span class="badge-current">current</span></span>
+          </div>
+          <div class="dv-reads">MRR, churn, subscription status</div>
+          <div class="dv-tables">
+            <span class="dv-tag read">subscriptions</span>
+            <span class="dv-tag read">companies</span>
+            <span class="dv-tag read">payments</span>
+          </div>
+          <div class="impl-note">→ SQL query with joins across subscriptions + payments</div>
+        </div>
+
+        <!-- Reports View -->
+        <div class="dash-view reports">
+          <div class="dv-head">
+            <span class="dv-icon">📊</span>
+            <span class="dv-name">Reports <span class="badge-planned">planned</span></span>
+          </div>
+          <div class="dv-reads">CO₂ certs, hub efficiency, B2B exports</div>
+          <div class="dv-tables">
+            <span class="dv-tag read">analytics</span>
+            <span class="dv-tag write">Edge Fn: generate PDF</span>
+            <span class="dv-tag read">orders (agg)</span>
+          </div>
+          <div class="impl-note">→ Admin SQL queries via service_role + Edge Fn for PDF gen</div>
+        </div>
+
+      </div><!-- /card-body -->
+    </div>
+
+  </div><!-- /col right -->
+
+</div><!-- /arch-grid -->
+
+
+<!-- ══ Integration Points ══════════════════════════════════════════════════ -->
+<div class="integration-section">
+  <h2>🔗 Key Integration Points — How to Implement</h2>
+  <div class="int-grid">
+
+    <div class="int-card">
+      <div class="int-head">
+        <div class="int-dot" style="background:#3b82f6"></div>
+        <div class="int-title">Flutter App → Supabase</div>
+      </div>
+      <p><code>supabase_flutter</code> SDK handles auth, database reads/writes, and realtime subscriptions. Riders broadcast GPS via <code>deliveries</code> table updates. RLS ensures each user only sees their own data.</p>
+    </div>
+
+    <div class="int-card">
+      <div class="int-head">
+        <div class="int-dot" style="background:#f59e0b"></div>
+        <div class="int-title">Super Pays → Supabase</div>
+      </div>
+      <p>REST API integration from mobile app. After payment completes, Super Pays fires a webhook to a Supabase Edge Function. That function verifies the signature and writes to <code>payments</code> + updates <code>orders.payment_status</code>. PCI-DSS compliant — card data never touches Supabase.</p>
+    </div>
+
+    <div class="int-card">
+      <div class="int-head">
+        <div class="int-dot" style="background:#a855f7"></div>
+        <div class="int-title">Admin Dashboard → Supabase</div>
+      </div>
+      <p>Dashboard reads via <code>service_role</code> key (bypasses RLS for admin access). Realtime subscription on <code>deliveries</code> drives the live GPS map. Admin writes (rider assignment, hub management) call Edge Functions that enforce business rules before updating the DB.</p>
+    </div>
+
+    <div class="int-card">
+      <div class="int-head">
+        <div class="int-dot" style="background:#22c55e"></div>
+        <div class="int-title">Next Implementation Step</div>
+      </div>
+      <p>Replace <code>RIDERS</code> in <code>constants.ts</code> with a Supabase hook:<br>
+      <code>supabase.from('deliveries').select('*, users(*), orders(*)')</code><br>
+      Then subscribe to changes: <code>.on('UPDATE', payload => setRiders(...))</code><br>
+      This makes the Live Map truly real-time with zero polling.</p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══ Security Bar ═══════════════════════════════════════════════════════ -->
+<div class="security-bar">
+  <span class="lock">🔒</span>
+  <p>
+    <strong>Security:</strong>&nbsp;
+    JWT tokens from Supabase Auth flow to all services &nbsp;|&nbsp;
+    RLS policies enforce role-based data access per user &nbsp;|&nbsp;
+    Super Pays is PCI-DSS compliant — no card data stored in Supabase &nbsp;|&nbsp;
+    Admin Dashboard uses <code style="font-family:monospace;color:#86efac">service_role</code> key server-side only — never exposed to browser
+  </p>
+</div>
+
+</body>
+</html>

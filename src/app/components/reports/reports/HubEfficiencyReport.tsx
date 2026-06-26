@@ -1,10 +1,12 @@
 import { Warehouse, Calendar, AlertTriangle } from "lucide-react";
-import { INITIAL_HUBS, MATERIAL_CONFIG } from "../../../constants";
+import { MATERIAL_CONFIG } from "../../../constants";
 import { hubCapacityPct } from "../../../helpers";
+import { useHubs } from "../../../../hooks/useHubs";
 
 export function HubEfficiencyReport() {
-  const activeHubs = INITIAL_HUBS.filter(h => h.active);
-  const inactiveHubs = INITIAL_HUBS.filter(h => !h.active);
+  const { hubs } = useHubs();
+  const activeHubs = hubs.filter(h => h.active);
+  const inactiveHubs = hubs.filter(h => !h.active);
 
   return (
     <div style={{ padding: "var(--space-4)" }}>

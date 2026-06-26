@@ -6,24 +6,14 @@ import { hubCapacityPct, hubCapacityColor } from "../helpers";
 
 interface HubsPanelProps {
   hubs: Hub[];
-  setHubs: React.Dispatch<React.SetStateAction<Hub[]>>;
-  selectedId: number | null;
-  onSelect: (id: number) => void;
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onToggleActive: (id: string, active: boolean) => Promise<void>;
+  onUpdateStatus: (id: string, status: Hub["status"]) => Promise<void>;
 }
 
-export function HubsPanel({ hubs, setHubs, selectedId, onSelect }: HubsPanelProps) {
-  const [expanded, setExpanded] = useState<number | null>(null);
-
-  const toggleActive = (id: number) =>
-    setHubs(prev => prev.map(h => h.id === id ? { ...h, active: !h.active } : h));
-
-  const scheduleShipment = (id: number) =>
-    setHubs(prev => prev.map(h => h.id === id ? { ...h, status: "ready" } : h));
-
-  const markShipped = (id: number) =>
-    setHubs(prev => prev.map(h => h.id === id
-      ? { ...h, status: "shipped", currentLoad: { cookingOil: 0, plastic: 0, paper: 0, electronics: 0 }, lastShipmentDate: new Date().toISOString().slice(0, 10) }
-      : h));
+export function HubsPanel({ hubs, selectedId, onSelect, onToggleActive, onUpdateStatus }: HubsPanelProps) {
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   return (
     <div className="flex flex-col h-full border-l" style={{ width: PANEL_WIDTH, flexShrink: 0, borderColor: "#E2E8F0", background: "#F4F6F5" }}>
@@ -49,7 +39,7 @@ export function HubsPanel({ hubs, setHubs, selectedId, onSelect }: HubsPanelProp
                 {/* Checkbox */}
                 <button
                   aria-label={`${hub.active ? "Deactivate" : "Activate"} ${hub.name}`}
-                  onClick={() => toggleActive(hub.id)}
+                  onClick={() => onToggleActive(hub.id, !hub.active)}
                   className="mt-0.5 flex-shrink-0 transition-colors"
                 >
                   {hub.active
@@ -110,14 +100,14 @@ export function HubsPanel({ hubs, setHubs, selectedId, onSelect }: HubsPanelProp
                   </div>
                   <div className="flex gap-2">
                     {hub.status === "collecting" && hub.active && (
-                      <button onClick={() => scheduleShipment(hub.id)}
+                      <button onClick={() => onUpdateStatus(hub.id, "ready")}
                         className="flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                         style={{ background: "#FEF3C7", color: "#C8860A", fontFamily: "'DM Sans',sans-serif" }}>
                         Schedule Shipment
                       </button>
                     )}
                     {hub.status === "ready" && (
-                      <button onClick={() => markShipped(hub.id)}
+                      <button onClick={() => onUpdateStatus(hub.id, "shipped")}
                         className="flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                         style={{ background: "#D1FAE5", color: "#1E5C35", fontFamily: "'DM Sans',sans-serif" }}>
                         ✓ Mark as Shipped

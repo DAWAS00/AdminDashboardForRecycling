@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import { Search } from "lucide-react";
-import { CLIENTS, TIER_CONFIG, TIER_ORDER } from "../../constants";
+import { TIER_CONFIG, TIER_ORDER } from "../../constants";
 import { Client, ContractTier, ClientType } from "../../types";
+import { useClients } from "../../../hooks/useClients";
 import { isChurnRisk } from "../../helpers";
 import { MRRStrip }           from "./MRRStrip";
 import { ChurnAlertPanel }    from "./ChurnAlertPanel";
@@ -20,7 +21,7 @@ const CLIENT_TYPE_OPTIONS: { id: TypeFilter; label: string }[] = [
 ];
 
 export function PartnersView() {
-  const [clients,    setClients]    = useState<Client[]>(CLIENTS);
+  const { clients, loading, updateTier, updateNotes } = useClients();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tierFilter, setTierFilter] = useState<TierFilter>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
@@ -43,8 +44,18 @@ export function PartnersView() {
     [clients, tierFilter, typeFilter, search]
   );
 
-  function handleUpdate(updated: Client) {
-    setClients(prev => prev.map(c => c.id === updated.id ? updated : c));
+  async function handleUpdate(updated: Client) {
+    const original = clients.find(c => c.id === updated.id);
+    if (original) {
+      const ops: Promise<void>[] = [];
+      if (original.contractTier !== updated.contractTier) {
+        ops.push(updateTier(updated.id, updated.contractTier));
+      }
+      if (original.contractNotes !== updated.contractNotes) {
+        ops.push(updateNotes(updated.id, updated.contractNotes ?? ""));
+      }
+      await Promise.all(ops);
+    }
     setSelectedId(null);
   }
 
@@ -55,6 +66,14 @@ export function PartnersView() {
   ];
 
   const churnCount = filtered.filter(isChurnRisk).length;
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center" style={{ color: "#64748B", fontFamily: "'DM Sans',sans-serif", fontSize: 13 }}>
+        Loading partners…
+      </div>
+    );
+  }
 
   return (
     <div

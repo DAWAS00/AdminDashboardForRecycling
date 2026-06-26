@@ -1,15 +1,17 @@
 import { MapPin, Plus, AlertCircle, TrendingUp } from "lucide-react";
-import { DISTRICTS, INITIAL_HUBS } from "../../../constants";
+import { DISTRICTS } from "../../../constants";
 import { districtPriorityScore, isDistrictCovered } from "../../../helpers";
+import { useHubs } from "../../../../hooks/useHubs";
 
 export function ExpansionOpportunityReport() {
+  const { hubs } = useHubs();
   // Find uncovered / under-covered districts
   const uncovered = DISTRICTS
-    .filter(d => !isDistrictCovered(d, INITIAL_HUBS, 5))
+    .filter(d => !isDistrictCovered(d, hubs, 5))
     .sort((a, b) => districtPriorityScore(b) - districtPriorityScore(a));
 
   const weaklyCovered = DISTRICTS
-    .filter(d => isDistrictCovered(d, INITIAL_HUBS, 5) && !isDistrictCovered(d, INITIAL_HUBS, 3))
+    .filter(d => isDistrictCovered(d, hubs, 5) && !isDistrictCovered(d, hubs, 3))
     .sort((a, b) => districtPriorityScore(b) - districtPriorityScore(a));
 
   const totalUntappedCo2 = uncovered.reduce((s, d) => s + (d.co2Potential - d.co2Achieved), 0);

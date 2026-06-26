@@ -6,7 +6,6 @@ import {
   MOTO_PATH,
   VAN_PATH,
   HUB_PATH,
-  RIDERS,
   MATERIAL_CONFIG,
   CO2_EQUIVALENTS,
   MATERIAL_DELIVERY_ESTIMATE_MS,
@@ -66,7 +65,7 @@ export function hubCapacityColor(pct: number): string {
   return "#1E5C35";
 }
 
-export function computeTotals(riders: Rider[] = RIDERS) {
+export function computeTotals(riders: Rider[]) {
   const all = riders.flatMap(r => r.orders);
   const co2 = all.reduce((s, o) => s + o.co2Saved, 0);
   const earnings = all.reduce((s, o) => s + o.earnings, 0);
@@ -275,7 +274,7 @@ export function buildMetricOrderRows(
   metric: HistoryMetricKey
 ) {
   type Row = {
-    riderId:     number;
+    riderId:     string;
     riderName:   string;
     riderStatus: Rider["status"];
     orderId:     string;

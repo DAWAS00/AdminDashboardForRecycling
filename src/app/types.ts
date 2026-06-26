@@ -16,7 +16,7 @@ export interface Order {
 }
 
 export interface Rider {
-  id: number;
+  id: string;
   name: string;
   nameAr: string;
   phone: string;
@@ -37,7 +37,7 @@ export interface HubMaterials {
 }
 
 export interface Hub {
-  id: number;
+  id: string;
   name: string;
   address: string;
   lat: number;
@@ -129,7 +129,7 @@ export interface Route {
 
 export interface ActiveRoute {
   orderId: string;
-  riderId: number;
+  riderId: string;
   route: Route;
   currentCoordIndex: number;
   startedAt: number;
@@ -138,7 +138,7 @@ export interface ActiveRoute {
 
 export interface CompletedTrip {
   orderId: string;
-  riderId: number;
+  riderId: string;
   riderName: string;
   startedAt: number;
   completedAt: number;

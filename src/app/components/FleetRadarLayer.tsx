@@ -1,16 +1,16 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
-import type { Rider } from "../types";
+import type { Hub, Rider } from "../types";
 import { fetchOsrmRoute, buildArcFallback } from "../lib/osrm";
-import { INITIAL_HUBS } from "../constants";
 
 interface FleetRadarLayerProps {
   map: L.Map | null;
   riders: Rider[];
-  activeRouteRiderId: number | null;
+  hubs: Hub[];
+  activeRouteRiderId: string | null;
 }
 
-export function FleetRadarLayer({ map, riders, activeRouteRiderId }: FleetRadarLayerProps) {
+export function FleetRadarLayer({ map, riders, hubs, activeRouteRiderId }: FleetRadarLayerProps) {
   const layersRef = useRef<L.Layer[]>([]);
 
   function clearLayers() {
@@ -31,7 +31,9 @@ export function FleetRadarLayer({ map, riders, activeRouteRiderId }: FleetRadarL
       const order = rider.orders.find(o => o.status === "inTransit");
       if (!order) return;
 
-      const hub = INITIAL_HUBS.filter(h => h.active).reduce((best, h) =>
+      const activeHubs = hubs.filter(h => h.active);
+      if (activeHubs.length === 0) return;
+      const hub = activeHubs.reduce((best, h) =>
         Math.hypot(h.lat - rider.lat, h.lng - rider.lng) <
         Math.hypot(best.lat - rider.lat, best.lng - rider.lng) ? h : best
       );

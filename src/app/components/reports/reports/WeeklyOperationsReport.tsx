@@ -1,11 +1,13 @@
 import { Wind, Banknote, Package, Users, TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { RIDERS, MATERIAL_CONFIG, METRIC_HISTORY } from "../../../constants";
+import { MATERIAL_CONFIG, METRIC_HISTORY } from "../../../constants";
 import { computeTotals } from "../../../helpers";
 import { MetricSparkline } from "../../MetricSparkline";
+import { useRiders } from "../../../../hooks/useRiders";
 
 export function WeeklyOperationsReport() {
-  const totals = computeTotals(RIDERS);
-  const allOrders = RIDERS.flatMap(r => r.orders);
+  const { riders } = useRiders();
+  const totals = computeTotals(riders);
+  const allOrders = riders.flatMap(r => r.orders);
   const completedOrders = allOrders.filter(o => o.status === "completed");
   const activeOrders = allOrders.filter(o => o.status !== "completed");
 
@@ -38,7 +40,7 @@ export function WeeklyOperationsReport() {
         <KpiCard icon={Wind}    label="CO₂ Captured" value={`${totals.co2.toFixed(1)} kg`} color="var(--color-brand-600)" sparkline={co2History} />
         <KpiCard icon={Banknote} label="Earnings"     value={`${totals.earnings.toFixed(2)} JD`} color="var(--color-amber-600)" sparkline={earningsHistory} />
         <KpiCard icon={Package}  label="Completed Orders" value={String(completedOrders.length)} color="var(--color-text-primary)" />
-        <KpiCard icon={Users}    label="Active Riders"    value={String(RIDERS.filter(r => r.status !== "idle").length)} color="var(--color-text-primary)" />
+        <KpiCard icon={Users}    label="Active Riders"    value={String(riders.filter(r => r.status !== "idle").length)} color="var(--color-text-primary)" />
       </div>
 
       {/* Top materials */}
@@ -89,7 +91,7 @@ export function WeeklyOperationsReport() {
             </tr>
           </thead>
           <tbody>
-            {RIDERS.map(r => {
+            {riders.map(r => {
               const co2 = r.orders.reduce((s, o) => s + o.co2Saved, 0);
               const earnings = r.orders.reduce((s, o) => s + o.earnings, 0);
               return (

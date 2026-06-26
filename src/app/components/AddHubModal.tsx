@@ -5,7 +5,7 @@ import { Hub } from "../types";
 interface AddHubModalProps {
   lat: number;
   lng: number;
-  onConfirm: (hub: Omit<Hub, "id">) => void;
+  onConfirm: (hub: Omit<Hub, "id">) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -14,25 +14,34 @@ export function AddHubModal({ lat, lng, onConfirm, onCancel }: AddHubModalProps)
   const [address, setAddress]   = useState(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
   const [schedule, setSchedule] = useState<"weekly" | "monthly">("weekly");
   const [capacity, setCapacity] = useState(400);
+  const [submitting, setSubmitting]   = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = () => {
-    if (!name.trim()) return;
+  const handleSubmit = async () => {
+    if (!name.trim() || submitting) return;
     const today = new Date();
     const next = new Date(today);
     next.setDate(today.getDate() + (schedule === "weekly" ? 7 : 30));
-    onConfirm({
-      name,
-      address,
-      lat,
-      lng,
-      active: true,
-      capacityKg: capacity,
-      currentLoad: { cookingOil: 0, plastic: 0, paper: 0, electronics: 0 },
-      schedule,
-      nextShipmentDate: next.toISOString().slice(0, 10),
-      lastShipmentDate: "—",
-      status: "collecting",
-    });
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      await onConfirm({
+        name,
+        address,
+        lat,
+        lng,
+        active: true,
+        capacityKg: capacity,
+        currentLoad: { cookingOil: 0, plastic: 0, paper: 0, electronics: 0 },
+        schedule,
+        nextShipmentDate: next.toISOString().slice(0, 10),
+        lastShipmentDate: "",
+        status: "collecting",
+      });
+    } catch {
+      setSubmitError("Failed to save hub. Try again.");
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -74,12 +83,15 @@ export function AddHubModal({ lat, lng, onConfirm, onCancel }: AddHubModalProps)
               style={{ borderColor: "#E2E8F0", fontFamily: "'DM Mono',monospace", color: "#1a1a1a" }} />
           </div>
         </div>
+        {submitError && (
+          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: "#C8280A", marginTop: 8 }}>{submitError}</p>
+        )}
         <div className="flex gap-2 mt-5">
-          <button onClick={onCancel} className="flex-1 py-2 rounded-lg text-sm font-semibold transition-colors" style={{ background: "#F4F6F5", color: "#64748B" }}>Cancel</button>
-          <button onClick={handleSubmit} disabled={!name.trim()}
+          <button onClick={onCancel} disabled={submitting} className="flex-1 py-2 rounded-lg text-sm font-semibold transition-colors" style={{ background: "#F4F6F5", color: "#64748B" }}>Cancel</button>
+          <button onClick={handleSubmit} disabled={!name.trim() || submitting}
             className="flex-1 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
-            style={{ background: name.trim() ? "#1E5C35" : "#94A3B8" }}>
-            Add Hub
+            style={{ background: name.trim() && !submitting ? "#1E5C35" : "#94A3B8" }}>
+            {submitting ? "Saving…" : "Add Hub"}
           </button>
         </div>
       </div>

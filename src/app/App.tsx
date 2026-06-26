@@ -2,7 +2,9 @@ import { useState, useCallback } from "react";
 import { Plus } from "lucide-react";
 
 import { ViewId, Hub, HeatMapViewMode, MaterialFilter, ActiveRoute, CompletedTrip } from "./types";
-import { RIDERS, ONLINE_COUNT, INITIAL_HUBS, HUB_STATUS_CONFIG, DISTRICTS, STATUS_CONFIG } from "./constants";
+import { HUB_STATUS_CONFIG, DISTRICTS, STATUS_CONFIG } from "./constants";
+import { useRiders } from "../hooks/useRiders";
+import { useHubs } from "../hooks/useHubs";
 import { computeTotals, useClock } from "./helpers";
 import { fetchOsrmRoute, buildArcFallback } from "./lib/osrm";
 import { etaMultiplier } from "./lib/eta";
@@ -22,11 +24,13 @@ import { RouteLayer } from "./components/RouteLayer";
 import { ReportsScreen } from "./components/reports/ReportsScreen";
 
 export default function App() {
+  const { riders, loading: ridersLoading } = useRiders();
+  const { hubs, loading: hubsLoading, addHub, toggleHubActive, updateHubStatus } = useHubs();
+
   const [activeView, setActiveView]     = useState<ViewId>("map");
-  const [selectedRider, setSelectedRider] = useState<number | null>(null);
+  const [selectedRider, setSelectedRider] = useState<string | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
-  const [selectedHub, setSelectedHub]   = useState<number | null>(null);
-  const [hubs, setHubs]                 = useState<Hub[]>(INITIAL_HUBS);
+  const [selectedHub, setSelectedHub]   = useState<string | null>(null);
   const [placingHub, setPlacingHub]     = useState(false);
   const [pendingCoords, setPendingCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showAmmanBoundary, setShowAmmanBoundary] = useState(true);
@@ -40,13 +44,13 @@ export default function App() {
   const [completedTrips, setCompletedTrips] = useState<CompletedTrip[]>([]);
   const [fleetRadar, setFleetRadar]         = useState(false);
 
-  const handleRiderSelect  = useCallback((id: number) => setSelectedRider(p => p === id ? null : id), []);
+  const handleRiderSelect  = useCallback((id: string) => setSelectedRider(p => p === id ? null : id), []);
   const handleRiderClose   = useCallback(() => setSelectedRider(null), []);
   const handleDistrictSelect = useCallback((id: string) => setSelectedDistrict(p => p === id ? null : id), []);
-  const handleHubSelect    = useCallback((id: number) => setSelectedHub(p => p === id ? null : id), []);
+  const handleHubSelect    = useCallback((id: string) => setSelectedHub(p => p === id ? null : id), []);
 
-  const handleOrderClick = async (riderId: number, orderId: string) => {
-    const rider = RIDERS.find(r => r.id === riderId);
+  const handleOrderClick = async (riderId: string, orderId: string) => {
+    const rider = riders.find(r => r.id === riderId);
     const order = rider?.orders.find(o => o.id === orderId);
     if (!rider || !order) return;
 
@@ -94,7 +98,7 @@ export default function App() {
   const handleAnimationComplete = () => {
     setActiveRoute(prev => {
       if (!prev) return null;
-      const rider = RIDERS.find(r => r.id === prev.riderId);
+      const rider = riders.find(r => r.id === prev.riderId);
       const order = rider?.orders.find(o => o.id === prev.orderId);
       if (!rider || !order) return null;
 
@@ -129,12 +133,22 @@ export default function App() {
     setPlacingHub(false);
   }, []);
 
-  const handleAddHub = useCallback((data: Omit<Hub, "id">) => {
-    setHubs(prev => [...prev, { ...data, id: Date.now() }]);
+  const handleAddHub = useCallback(async (data: Omit<Hub, "id">) => {
+    await addHub(data);
     setPendingCoords(null);
-  }, []);
+  }, [addHub]);
 
-  const totals = computeTotals(RIDERS);
+  const totals = computeTotals(riders);
+
+  if (ridersLoading || hubsLoading) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#0F172A", color: "#64748B", fontFamily: "'DM Sans',sans-serif", fontSize: 15, gap: 12 }}>
+        <div style={{ width: 20, height: 20, border: "2px solid #1E5C35", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        Connecting to Supabase…
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   const viewTitle: Record<ViewId, string> = {
     map: "Live Operations Map",
@@ -145,7 +159,7 @@ export default function App() {
   };
 
   const viewSubtitle: Record<ViewId, string> = {
-    map: `Amman, Jordan — tracking ${ONLINE_COUNT} active riders`,
+    map: `Amman, Jordan — tracking ${riders.filter(r => r.status !== "idle").length} active riders`,
     heatmap: "District-level CO₂ savings potential across Amman",
     hubs: `${hubs.filter(h => h.active).length} active hubs · ${hubs.filter(h => h.status === "ready").length} ready to ship`,
     partners: "Manage partner tiers, contracts, and rewards",
@@ -228,7 +242,8 @@ export default function App() {
             {activeView === "map" && (
               <>
                 <LiveMapLayer
-                  riders={RIDERS}
+                  riders={riders}
+                  hubs={hubs}
                   selectedId={selectedRider}
                   onSelect={handleRiderSelect}
                   activeRoute={activeRoute}
@@ -239,7 +254,7 @@ export default function App() {
                 {/* Status pills */}
                 <div className="absolute top-3 left-3 z-[500] flex gap-2 flex-wrap">
                   {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
-                    const count = RIDERS.filter(r => r.status === key).length;
+                    const count = riders.filter(r => r.status === key).length;
                     return (
                       <div key={key} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: "white", boxShadow: "0 1px 6px rgba(0,0,0,0.1)" }}>
                         <span className="w-2 h-2 rounded-full" style={{ background: cfg.dot }} />
@@ -335,7 +350,7 @@ export default function App() {
               setViewMode={setHeatMapViewMode}
               materialFilter={materialFilter}
               setMaterialFilter={setMaterialFilter}
-              idleRiders={RIDERS.filter(r => r.status === "idle")}
+              idleRiders={riders.filter(r => r.status === "idle")}
               showAmmanBoundary={heatMapViewMode !== "hubs"}
               setShowAmmanBoundary={() => {}}
               showRiderHotspots={heatMapViewMode === "demand"}
@@ -345,7 +360,7 @@ export default function App() {
             />
           )}
           {activeView === "hubs" && (
-            <HubsPanel hubs={hubs} setHubs={setHubs} selectedId={selectedHub} onSelect={handleHubSelect} />
+            <HubsPanel hubs={hubs} selectedId={selectedHub} onSelect={handleHubSelect} onToggleActive={toggleHubActive} onUpdateStatus={updateHubStatus} />
           )}
         </div>
 

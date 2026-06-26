@@ -3,7 +3,7 @@ import {
   MapPin, Layers, Warehouse, BarChart2, FileText,
   Activity, TrendingUp, Wind, Users,
 } from "lucide-react";
-import { District, Hub, Order, Rider, ViewId, Client, ClientType, ContractTier, ReportType } from "./types";
+import { District, Order, ViewId, Client, ClientType, ContractTier, ReportType } from "./types";
 
 export const MATERIAL_CONFIG = {
   "Cooking Oil":       { color: "#C8860A", bg: "#FEF3C7", Icon: Droplets, unit: "L"  },
@@ -202,158 +202,6 @@ export const DISTRICTS: District[] = [
     },
   },
 ];
-
-export const INITIAL_HUBS: Hub[] = [
-  {
-    id: 1, name: "Hub Al-Sweifieh", address: "Sweifieh Commercial District",
-    lat: 31.9460, lng: 35.8650, active: true, capacityKg: 500,
-    currentLoad: { cookingOil: 120, plastic: 34, paper: 18, electronics: 0 },
-    schedule: "weekly", nextShipmentDate: "2026-06-26", lastShipmentDate: "2026-06-19",
-    status: "collecting",
-  },
-  {
-    id: 2, name: "Hub Downtown", address: "Al-Balad, 1st Circle area",
-    lat: 31.9535, lng: 35.9290, active: true, capacityKg: 400,
-    currentLoad: { cookingOil: 80, plastic: 15, paper: 42, electronics: 5 },
-    schedule: "weekly", nextShipmentDate: "2026-06-27", lastShipmentDate: "2026-06-20",
-    status: "collecting",
-  },
-  {
-    id: 3, name: "Hub Jubaiha", address: "Jubaiha North, near University",
-    lat: 32.0020, lng: 35.8700, active: true, capacityKg: 300,
-    currentLoad: { cookingOil: 0, plastic: 20, paper: 8, electronics: 60 },
-    schedule: "monthly", nextShipmentDate: "2026-07-01", lastShipmentDate: "2026-06-01",
-    status: "ready",
-  },
-  {
-    id: 4, name: "Hub Abdoun", address: "Abdoun Circle, South Amman",
-    lat: 31.9415, lng: 35.8870, active: false, capacityKg: 350,
-    currentLoad: { cookingOil: 0, plastic: 0, paper: 0, electronics: 0 },
-    schedule: "weekly", nextShipmentDate: "—", lastShipmentDate: "2026-06-10",
-    status: "collecting",
-  },
-  {
-    id: 5, name: "Hub Tabarbour", address: "Tabarbour Industrial Zone",
-    lat: 32.0155, lng: 35.9150, active: true, capacityKg: 600,
-    currentLoad: { cookingOil: 40, plastic: 55, paper: 80, electronics: 10 },
-    schedule: "monthly", nextShipmentDate: "2026-07-05", lastShipmentDate: "2026-06-05",
-    status: "collecting",
-  },
-];
-
-const rawRiders: Rider[] = [
-  {
-    id: 1, name: "Ahmad Khalil", nameAr: "أحمد خليل",
-    phone: "+962 79 123 4567", lat: 31.9520, lng: 35.9239,
-    status: "delivering", vehicle: "Motorcycle",
-    orders: [
-      { id: "ORD-2841", material: "Cooking Oil",      quantity: 45, unit: "L",  address: "Al-Balad, Downtown", deliveryLat: 31.953, deliveryLng: 35.934, status: "inTransit", co2Saved: 112.5, earnings: 18.5 },
-      { id: "ORD-2842", material: "Plastic Bottles",  quantity: 12, unit: "kg", address: "Al-Hashmi St",       deliveryLat: 31.963, deliveryLng: 35.905, status: "accepted",  co2Saved: 72,    earnings: 6.0  },
-    ],
-  },
-  {
-    id: 2, name: "Omar Hassan", nameAr: "عمر حسن",
-    phone: "+962 77 234 5678", lat: 31.9570, lng: 35.8850,
-    status: "picking_up", vehicle: "Van",
-    orders: [
-      { id: "ORD-2838", material: "Cooking Oil", quantity: 80, unit: "L", address: "4th Circle, Amman", deliveryLat: 31.963, deliveryLng: 35.905, status: "pending", co2Saved: 200, earnings: 32.0 },
-    ],
-  },
-  {
-    id: 3, name: "Tariq Mansour", nameAr: "طارق منصور",
-    phone: "+962 78 345 6789", lat: 31.9440, lng: 35.8710,
-    status: "delivering", vehicle: "Motorcycle",
-    orders: [
-      { id: "ORD-2835", material: "Paper & Cardboard", quantity: 34, unit: "kg", address: "Sweifieh",     deliveryLat: 31.944, deliveryLng: 35.871, status: "inTransit", co2Saved: 61.2, earnings: 8.5  },
-      { id: "ORD-2836", material: "Plastic Bottles",   quantity:  8, unit: "kg", address: "Tlaa Al-Ali",  deliveryLat: 31.950, deliveryLng: 35.857, status: "accepted",  co2Saved: 48,   earnings: 4.0  },
-    ],
-  },
-  {
-    id: 4, name: "Khalid Nasser", nameAr: "خالد ناصر",
-    phone: "+962 79 456 7890", lat: 31.9780, lng: 35.8820,
-    status: "idle", vehicle: "Van", orders: [],
-    idleSince: Date.now() - (23 * 60 * 1000),
-  },
-  {
-    id: 5, name: "Yousef Rami", nameAr: "يوسف رامي",
-    phone: "+962 77 567 8901", lat: 32.0010, lng: 35.8680,
-    status: "delivering", vehicle: "Motorcycle",
-    orders: [
-      { id: "ORD-2830", material: "Electronics", quantity: 15, unit: "kg", address: "Jubaiha", deliveryLat: 32.001, deliveryLng: 35.869, status: "inTransit", co2Saved: 225, earnings: 22.5 },
-    ],
-  },
-  {
-    id: 6, name: "Faisal Amin", nameAr: "فيصل أمين",
-    phone: "+962 78 678 9012", lat: 31.9400, lng: 35.8850,
-    status: "picking_up", vehicle: "Van",
-    orders: [
-      { id: "ORD-2845", material: "Cooking Oil", quantity: 60, unit: "L", address: "Abdoun",      deliveryLat: 31.940, deliveryLng: 35.884, status: "pending", co2Saved: 150,  earnings: 24.0 },
-      { id: "ORD-2846", material: "Cooking Oil", quantity: 25, unit: "L", address: "3rd Circle",  deliveryLat: 31.963, deliveryLng: 35.905, status: "pending", co2Saved: 62.5, earnings: 10.0 },
-    ],
-  },
-  {
-    id: 7, name: "Rami Diab", nameAr: "رامي دياب",
-    phone: "+962 79 789 0123", lat: 32.0150, lng: 35.9220,
-    status: "delivering", vehicle: "Motorcycle",
-    orders: [
-      { id: "ORD-2828", material: "Plastic Bottles", quantity: 20, unit: "kg", address: "Tabarbour", deliveryLat: 32.014, deliveryLng: 35.921, status: "inTransit", co2Saved: 120, earnings: 10.0 },
-    ],
-  },
-  {
-    id: 8, name: "Nidal Saad", nameAr: "نضال سعد",
-    phone: "+962 77 890 1234", lat: 31.9590, lng: 35.8550,
-    status: "delivering", vehicle: "Van",
-    orders: [
-      { id: "ORD-2820", material: "Paper & Cardboard", quantity: 55, unit: "kg", address: "8th Circle",   deliveryLat: 31.959, deliveryLng: 35.853, status: "inTransit", co2Saved: 99,  earnings: 13.75 },
-      { id: "ORD-2821", material: "Electronics",        quantity:  8, unit: "kg", address: "Mecca Mall",   deliveryLat: 31.963, deliveryLng: 35.905, status: "accepted",  co2Saved: 120, earnings: 12.0  },
-    ],
-  },
-  {
-    id: 9, name: "Bassam Qasim", nameAr: "بسام قاسم",
-    phone: "+962 78 901 2345", lat: 31.9120, lng: 35.9500,
-    status: "picking_up", vehicle: "Motorcycle",
-    orders: [
-      { id: "ORD-2848", material: "Cooking Oil", quantity: 30, unit: "L", address: "Airport Road", deliveryLat: 31.912, deliveryLng: 35.946, status: "pending", co2Saved: 75, earnings: 12.0 },
-    ],
-  },
-  {
-    id: 10, name: "Imad Saleh", nameAr: "عماد صالح",
-    phone: "+962 79 012 3456", lat: 32.0080, lng: 35.8780,
-    status: "idle", vehicle: "Van", orders: [],
-    idleSince: Date.now() - (8 * 60 * 1000),
-  },
-];
-
-function seedOrderDates(riders: Rider[], date: string): Rider[] {
-  // Simulate orders accepted at specific times in the past.
-  // This makes timer badges meaningful on first load.
-  // Rami (ORD-2828) is seeded as critically overdue so the Alert Dot fires immediately.
-  const acceptedOffsets: Record<string, number> = {
-    "ORD-2841": 28 * 60 * 1000,  // Ahmad — Cooking Oil (20-min est.) → 1.4× → RED level 3
-    "ORD-2842":  5 * 60 * 1000,  // Ahmad — Plastic accepted → GREEN
-    "ORD-2835": 12 * 60 * 1000,  // Tariq — Paper (15-min est.) → 0.8× → AMBER level 2
-    "ORD-2836":  3 * 60 * 1000,  // Tariq — Plastic accepted → GREEN
-    "ORD-2830":  8 * 60 * 1000,  // Yousef — Electronics (25-min est.) → 0.32× → GREEN
-    "ORD-2828": 37 * 60 * 1000,  // Rami — Plastic (15-min est.) → 2.5× → CRITICAL level 4 ⚠️
-    "ORD-2820": 18 * 60 * 1000,  // Nidal — Paper (15-min est.) → 1.2× → RED level 3
-    "ORD-2821":  7 * 60 * 1000,  // Nidal — Electronics accepted → GREEN
-  };
-
-  return riders.map(r => ({
-    ...r,
-    orders: r.orders.map(o => ({
-      ...o,
-      createdAt:   date,
-      completedAt: o.status === "completed" ? date : undefined,
-      acceptedAt:
-        (o.status === "inTransit" || o.status === "accepted") && acceptedOffsets[o.id]
-          ? Date.now() - acceptedOffsets[o.id]
-          : undefined,
-    })),
-  }));
-}
-
-export const RIDERS: Rider[] = seedOrderDates(rawRiders, "2026-06-24");
 
 export type HistoryMetricKey = "co2" | "earnings" | "Cooking Oil" | "Plastic Bottles" | "Paper & Cardboard" | "Electronics";
 
@@ -572,7 +420,6 @@ export const REPORT_TEMPLATES: {
   { id: "co2-certificate",       title: "CO₂ Impact Certificate",    subtitle: "Client-branded impact proof",         audience: "client",     icon: Wind       },
 ];
 
-export const ONLINE_COUNT = RIDERS.filter(r => r.status !== "idle").length;
 export const AMMAN_CENTER: [number, number] = [31.963, 35.905];
 
 export const MOTO_PATH = "M5 11l1.5-4.5h6L14 9h5v2h-1.27c.17.31.27.66.27 1 0 1.1-.9 2-2 2s-2-.9-2-2c0-.34.1-.69.27-1h-4.54c.17.31.27.66.27 1 0 1.1-.9 2-2 2s-2-.9-2-2c0-.34.1-.69.27-1H3V9h2zm6-3H8l-.75 2H11V8zm2 0v2h2.25L18 8h-3z";

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
-import { Rider, ActiveRoute } from "../types";
+import { Hub, Rider, ActiveRoute } from "../types";
 import { AMMAN_CENTER, STATUS_CONFIG } from "../constants";
 import { makeRiderIcon } from "../helpers";
 import { RouteLayer } from "./RouteLayer";
@@ -9,8 +9,9 @@ import { StaticRouteLineLayer } from "./StaticRouteLineLayer";
 
 interface LiveMapLayerProps {
   riders: Rider[];
-  selectedId: number | null;
-  onSelect: (id: number) => void;
+  hubs: Hub[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
   activeRoute: ActiveRoute | null;
   onAnimationStep: (coordIndex: number) => void;
   onAnimationComplete: () => void;
@@ -18,14 +19,14 @@ interface LiveMapLayerProps {
 }
 
 export function LiveMapLayer({
-  riders, selectedId, onSelect,
+  riders, hubs, selectedId, onSelect,
   activeRoute, onAnimationStep, onAnimationComplete,
   fleetRadar = false
 }: LiveMapLayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<L.Map | null>(null);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
-  const markersRef   = useRef<Record<number, L.Marker>>({});
+  const markersRef   = useRef<Record<string, L.Marker>>({});
   const onSelectRef  = useRef(onSelect);
   onSelectRef.current = onSelect;
 
@@ -117,6 +118,7 @@ export function LiveMapLayer({
             <FleetRadarLayer
               map={mapInstance}
               riders={riders}
+              hubs={hubs}
               activeRouteRiderId={activeRoute?.riderId ?? null}
             />
           )}
