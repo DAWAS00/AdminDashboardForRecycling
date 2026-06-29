@@ -5,21 +5,36 @@ const SUPABASE_URL =
   "https://bbpleeddaquwwvexzmdc.supabase.co";
 
 const SUPABASE_SERVICE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_KEY ?? "";
+const SUPABASE_ANON_KEY    = import.meta.env.VITE_SUPABASE_ANON_KEY ?? "";
 
-if (!SUPABASE_SERVICE_KEY || SUPABASE_SERVICE_KEY === "PASTE_YOUR_SERVICE_ROLE_KEY_HERE") {
-  console.warn(
-    "[Dwaar Dashboard] VITE_SUPABASE_SERVICE_KEY is not set. " +
-    "Add your service_role key to .env.local — get it from Supabase dashboard → Settings → API."
+const isServiceKeyValid =
+  SUPABASE_SERVICE_KEY &&
+  SUPABASE_SERVICE_KEY !== "PASTE_YOUR_SERVICE_ROLE_KEY_HERE";
+
+// Prefer service_role (bypasses RLS). Fall back to anon key with RLS policies.
+const ACTIVE_KEY = isServiceKeyValid ? SUPABASE_SERVICE_KEY : SUPABASE_ANON_KEY;
+
+if (!ACTIVE_KEY) {
+  console.error(
+    "[Dawer Dashboard] No Supabase key found. " +
+    "Add VITE_SUPABASE_ANON_KEY or VITE_SUPABASE_SERVICE_KEY to .env.local"
+  );
+} else if (!isServiceKeyValid) {
+  console.info(
+    "[Dawer Dashboard] Running with anon key + RLS policies. " +
+    "Add VITE_SUPABASE_SERVICE_KEY for full service-role access."
   );
 }
 
 /**
- * Service-role Supabase client — bypasses RLS.
- * Internal admin tool only — never expose to end users.
+ * Supabase client for the admin dashboard.
+ * Uses service_role key when available (bypasses RLS),
+ * otherwise anon key with dashboard-specific RLS read/write policies.
+ * Never expose service_role to end users.
  */
 export const supabase: SupabaseClient = createClient(
   SUPABASE_URL,
-  SUPABASE_SERVICE_KEY,
+  ACTIVE_KEY,
   {
     auth: {
       autoRefreshToken: false,
@@ -31,7 +46,7 @@ export const supabase: SupabaseClient = createClient(
 // ─── Raw Supabase row types (snake_case, mirrors the DB schema) ───────────────
 
 export interface SupabaseProfile {
-  auth_id: string;          // PK — UUID, FK to auth.users
+  auth_id: string;
   name: string;
   phone: string;
   email: string | null;
@@ -64,7 +79,14 @@ export interface SupabaseProfile {
 export interface SupabaseOrder {
   id: string;
   type: "pickup" | "collection" | "collectionSale";
-  status: "pending" | "accepted" | "inTransit" | "completed" | "cancelled";
+  status:
+    | "pending"
+    | "accepted"
+    | "arrivedAtPickup"
+    | "inTransit"
+    | "arrivedAtDropoff"
+    | "completed"
+    | "cancelled";
   supplier_id: string | null;
   driver_id: string | null;
   company_id: string | null;
@@ -78,10 +100,15 @@ export interface SupabaseOrder {
   accepted_at: string | null;
   in_transit_at: string | null;
   completed_at: string | null;
+  pickup_lat: number | null;
+  pickup_lng: number | null;
+  dropoff_lat: number | null;
+  dropoff_lng: number | null;
 }
 
 export interface SupabaseDriverLocation {
   driver_id: string;
+  order_id: string;
   lat: number;
   lng: number;
   updated_at: string;

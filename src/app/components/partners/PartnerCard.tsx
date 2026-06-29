@@ -1,15 +1,17 @@
-import { AlertTriangle, Leaf, Lock } from "lucide-react";
+import {
+  AlertTriangle, Leaf, Lock, Utensils, Hotel, Building2, ShoppingBag, Hospital, Package,
+} from "lucide-react";
 import { Client, ClientType } from "../../types";
 import { TIER_CONFIG } from "../../constants";
 import { computePartnerHealth, getEffectivePriceJD, isChurnRisk } from "../../helpers";
 
-const CLIENT_TYPE_LABELS: Record<ClientType, string> = {
-  restaurant: "🍽 Restaurant",
-  hotel:      "🏨 Hotel",
-  office:     "🏢 Office",
-  retail:     "🛍 Retail",
-  hospital:   "🏥 Hospital",
-  other:      "📦 Other",
+const CLIENT_TYPE: Record<ClientType, { label: string; Icon: React.ComponentType<{ size: number }> }> = {
+  restaurant: { label: "Restaurant", Icon: Utensils    },
+  hotel:      { label: "Hotel",      Icon: Hotel       },
+  office:     { label: "Office",     Icon: Building2   },
+  retail:     { label: "Retail",     Icon: ShoppingBag },
+  hospital:   { label: "Hospital",   Icon: Hospital    },
+  other:      { label: "Other",      Icon: Package     },
 };
 
 interface PartnerCardProps {
@@ -22,6 +24,7 @@ export function PartnerCard({ client, onClick }: PartnerCardProps) {
   const mrr     = getEffectivePriceJD(client);
   const atRisk  = isChurnRisk(client);
   const tierCfg = TIER_CONFIG[client.contractTier];
+  const typeCfg = CLIENT_TYPE[client.type];
 
   const TODAY         = new Date("2026-06-24");
   const renewal       = new Date(client.renewalDate);
@@ -31,81 +34,94 @@ export function PartnerCard({ client, onClick }: PartnerCardProps) {
     : daysToRenewal === 0 ? "Renews today"
     : `Renews in ${daysToRenewal}d`;
 
-  const healthColor = health >= 70 ? "#1E5C35" : health >= 50 ? "#C8860A" : "#DC2626";
-  const healthBg    = health >= 70 ? "#D1FAE5" : health >= 50 ? "#FEF3C7" : "#FEE2E2";
+  const healthColor = health >= 70 ? "var(--color-brand-600)" : health >= 50 ? "var(--color-amber-600)" : "var(--color-danger-600)";
+  const healthBg    = health >= 70 ? "var(--color-brand-100)" : health >= 50 ? "var(--color-amber-100)" : "var(--color-danger-100)";
 
   return (
     <button
       onClick={onClick}
-      className="w-full text-left rounded-2xl border p-4 transition-all hover:shadow-md"
+      className="w-full text-left rounded-2xl border p-4 transition-all hover:shadow-md focus-ring"
       style={{
-        background:  "white",
-        borderColor: atRisk ? "#FCD34D" : "#E2E8F0",
-        boxShadow:   "0 1px 3px rgba(0,0,0,0.06)",
+        background:  "var(--color-surface-card)",
+        borderColor: atRisk ? "var(--color-amber-400)" : "var(--color-border)",
+        boxShadow:   "var(--shadow-xs)",
       }}
     >
-      {/* Header: badges + lock */}
+      {/* Header: type + tier badges, lock indicator */}
       <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
           <span
-            className="text-[10px] px-2 py-0.5 rounded-full"
-            style={{ background: "#F1F5F9", color: "#64748B", fontFamily: "'DM Sans',sans-serif" }}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full"
+            style={{
+              background: "var(--color-neutral-100)",
+              color: "var(--color-text-secondary)",
+              fontSize: 10,
+            }}
           >
-            {CLIENT_TYPE_LABELS[client.type]}
+            <typeCfg.Icon size={10} />
+            {typeCfg.label}
           </span>
           <span
-            className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-            style={{ background: tierCfg.bg, color: tierCfg.color, fontFamily: "'DM Sans',sans-serif" }}
+            className="px-2 py-0.5 rounded-full font-bold"
+            style={{
+              background: tierCfg.bg,
+              color: tierCfg.color,
+              fontSize: 10,
+            }}
           >
             {tierCfg.label}
           </span>
         </div>
         {client.customPriceJD !== undefined && (
-          <Lock size={11} style={{ color: "#94A3B8", flexShrink: 0 }} />
+          <Lock size={11} style={{ color: "var(--color-text-tertiary)", flexShrink: 0 }} />
         )}
       </div>
 
       {/* Name + address */}
       <div
         style={{
-          fontSize: 15, fontWeight: 700, color: "#1a1a1a",
-          fontFamily: "'DM Sans',sans-serif", lineHeight: 1.3,
+          fontSize: 15,
+          fontWeight: 700,
+          color: "var(--color-text-primary)",
+          lineHeight: 1.3,
         }}
       >
         {client.name}
       </div>
-      <div
-        style={{
-          fontSize: 11, color: "#94A3B8",
-          fontFamily: "'DM Sans',sans-serif", marginTop: 2,
-        }}
-      >
+      <div style={{ fontSize: 11, color: "var(--color-text-tertiary)", marginTop: 2 }}>
         {client.address}
       </div>
 
       {/* Divider */}
-      <div className="my-3 h-px" style={{ background: "#F1F5F9" }} />
+      <div className="my-3 h-px" style={{ background: "var(--color-neutral-100)" }} />
 
       {/* Health bar + MRR */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span
-            className="text-[10px] font-bold px-1.5 py-0.5 rounded"
-            style={{ background: healthBg, color: healthColor, fontFamily: "'DM Mono',monospace" }}
+            className="font-bold px-1.5 py-0.5 rounded"
+            style={{
+              background: healthBg,
+              color: healthColor,
+              fontFamily: "var(--font-mono)",
+              fontSize: 10,
+            }}
           >
             {health}%
           </span>
-          <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background: "#F1F5F9" }}>
-            <div
-              className="h-full rounded-full"
-              style={{ width: `${health}%`, background: healthColor }}
-            />
+          <div
+            className="rounded-full overflow-hidden"
+            style={{ width: 80, height: 6, background: "var(--color-neutral-100)" }}
+          >
+            <div className="h-full rounded-full" style={{ width: `${health}%`, background: healthColor }} />
           </div>
         </div>
         <span
           style={{
-            fontSize: 13, fontWeight: 700, color: "#1a1a1a",
-            fontFamily: "'DM Mono',monospace",
+            fontSize: 13,
+            fontWeight: 700,
+            color: "var(--color-text-primary)",
+            fontFamily: "var(--font-mono)",
           }}
         >
           {mrr > 0 ? `${mrr} JD/mo` : "Free"}
@@ -115,23 +131,23 @@ export function PartnerCard({ client, onClick }: PartnerCardProps) {
       {/* Orders + points + renewal */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span style={{ fontSize: 11, color: "#64748B", fontFamily: "'DM Sans',sans-serif" }}>
-            📦 {client.orders.length} order{client.orders.length !== 1 ? "s" : ""}
+          <span className="inline-flex items-center gap-1" style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>
+            <Package size={10} />
+            {client.orders.length} order{client.orders.length !== 1 ? "s" : ""}
           </span>
           <span
-            className="flex items-center gap-0.5"
-            style={{ fontSize: 11, color: "#1E5C35", fontFamily: "'DM Sans',sans-serif" }}
+            className="inline-flex items-center gap-1"
+            style={{ fontSize: 11, color: "var(--color-brand-600)" }}
           >
             <Leaf size={10} /> {client.greenPoints.toLocaleString()} pts
           </span>
         </div>
         <div className="flex items-center gap-1">
-          {atRisk && <AlertTriangle size={10} style={{ color: "#C8860A" }} />}
+          {atRisk && <AlertTriangle size={10} style={{ color: "var(--color-amber-600)" }} />}
           <span
             style={{
               fontSize: 10,
-              color: atRisk ? "#C8860A" : "#94A3B8",
-              fontFamily: "'DM Sans',sans-serif",
+              color: atRisk ? "var(--color-amber-600)" : "var(--color-text-tertiary)",
             }}
           >
             {renewalLabel}

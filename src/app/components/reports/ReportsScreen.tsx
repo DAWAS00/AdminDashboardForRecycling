@@ -1,14 +1,11 @@
 import { useState } from "react";
 import type { ReportType } from "../../types";
-import { REPORT_TEMPLATES, PANEL_WIDTH } from "../../constants";
+import { REPORT_TEMPLATES } from "../../constants";
 import { ReportTemplateCard } from "./ReportTemplateCard";
 import { ReportPreviewPanel } from "./ReportPreviewPanel";
-import { WeeklyOperationsReport }     from "./reports/WeeklyOperationsReport";
-import { HubEfficiencyReport }        from "./reports/HubEfficiencyReport";
-import { DistrictIntelligenceReport } from "./reports/DistrictIntelligenceReport";
-import { MaterialMarketPulseReport }  from "./reports/MaterialMarketPulseReport";
-import { ExpansionOpportunityReport } from "./reports/ExpansionOpportunityReport";
-import { Co2CertificateReport }       from "./reports/Co2CertificateReport";
+
+/** Sidebar width — compact template gallery lives here. */
+const GALLERY_WIDTH = 296;
 
 export function ReportsScreen() {
   const [selected, setSelected] = useState<ReportType>("weekly-operations");
@@ -21,28 +18,43 @@ export function ReportsScreen() {
         fontFamily: "var(--font-sans)",
       }}
     >
-      {/* Gallery */}
-      <div
-        className="flex-1 min-w-0 overflow-y-auto"
-        style={{ padding: "var(--space-5)" }}
+      {/* Gallery — compact vertical sidebar */}
+      <aside
+        className="flex flex-col min-h-0 border-r"
+        style={{
+          width: GALLERY_WIDTH,
+          flexShrink: 0,
+          background: "var(--color-surface-card)",
+          borderColor: "var(--color-border)",
+        }}
       >
-        <div style={{ marginBottom: 20 }}>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 4 }}>
+        <div
+          className="flex-shrink-0"
+          style={{
+            padding: "var(--space-4) var(--space-4) var(--space-3)",
+            borderBottom: "1px solid var(--color-border)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: "var(--color-text-primary)",
+              marginBottom: 2,
+            }}
+          >
             B2B Reports
-          </h1>
-          <p style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
-            Select a template to preview and export
-          </p>
+          </div>
+          <div style={{ fontSize: 11, color: "var(--color-text-tertiary)" }}>
+            {REPORT_TEMPLATES.length} templates
+          </div>
         </div>
 
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-            gap: "var(--space-4)",
-          }}
+          className="flex-1 overflow-y-auto scrollbar-hide"
+          style={{ padding: "var(--space-2)" }}
         >
-          {REPORT_TEMPLATES.map(t => (
+          {REPORT_TEMPLATES.map((t) => (
             <ReportTemplateCard
               key={t.id}
               template={t}
@@ -51,19 +63,10 @@ export function ReportsScreen() {
             />
           ))}
         </div>
-      </div>
+      </aside>
 
-      {/* Preview panel */}
-      <div
-        style={{
-          width: PANEL_WIDTH,
-          flexShrink: 0,
-          borderLeft: "1px solid var(--color-border)",
-          background: "var(--color-surface-card)",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+      {/* Preview — gets the full remaining width */}
+      <div className="flex-1 min-w-0 flex">
         <ReportPreviewPanel reportId={selected} />
       </div>
     </div>

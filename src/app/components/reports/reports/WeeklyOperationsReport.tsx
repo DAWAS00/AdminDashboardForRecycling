@@ -1,11 +1,15 @@
-import { Wind, Banknote, Package, Users, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Wind, Banknote, Package, Users } from "lucide-react";
+import {
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+} from "recharts";
 import { MATERIAL_CONFIG, METRIC_HISTORY } from "../../../constants";
 import { computeTotals } from "../../../helpers";
 import { MetricSparkline } from "../../MetricSparkline";
 import { useRiders } from "../../../../hooks/useRiders";
 
 export function WeeklyOperationsReport() {
-  const { riders } = useRiders();
+  const { data: riders = [] } = useRiders();
   const totals = computeTotals(riders);
   const allOrders = riders.flatMap(r => r.orders);
   const completedOrders = allOrders.filter(o => o.status === "completed");
@@ -22,6 +26,14 @@ export function WeeklyOperationsReport() {
 
   const co2History = METRIC_HISTORY.weekly.co2.slice(-4).map(p => p.value);
   const earningsHistory = METRIC_HISTORY.weekly.earnings.slice(-4).map(p => p.value);
+
+  // recharts data
+  const co2TrendData = METRIC_HISTORY.weekly.co2.slice(-8).map(p => ({ label: p.label, co2: p.value }));
+  const materialPieData = topMaterials.map(([name, value]) => ({
+    name,
+    value,
+    color: (MATERIAL_CONFIG as Record<string, { color: string }>)[name]?.color ?? "var(--color-neutral-400)",
+  }));
 
   return (
     <div style={{ padding: "var(--space-4)" }}>
@@ -42,6 +54,54 @@ export function WeeklyOperationsReport() {
         <KpiCard icon={Package}  label="Completed Orders" value={String(completedOrders.length)} color="var(--color-text-primary)" />
         <KpiCard icon={Users}    label="Active Riders"    value={String(riders.filter(r => r.status !== "idle").length)} color="var(--color-text-primary)" />
       </div>
+
+      {/* CO₂ trend area chart */}
+      <Section title="CO₂ Trend — Last 8 Weeks">
+        <ResponsiveContainer width="100%" height={120}>
+          <AreaChart data={co2TrendData} margin={{ top: 4, right: 0, left: -24, bottom: 0 }}>
+            <defs>
+              <linearGradient id="co2Grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor="var(--color-brand-600)" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="var(--color-brand-600)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+            <XAxis dataKey="label" tick={{ fontSize: 9, fill: "var(--color-neutral-400)" }} />
+            <YAxis tick={{ fontSize: 9, fill: "var(--color-neutral-400)" }} />
+            <Tooltip
+              contentStyle={{ fontFamily: "var(--font-sans)", fontSize: 11, border: "1px solid var(--color-border)", borderRadius: 6 }}
+              formatter={(v: number) => [`${v.toFixed(1)} kg`, "CO₂"]}
+            />
+            <Area type="monotone" dataKey="co2" stroke="var(--color-brand-600)" fill="url(#co2Grad)" strokeWidth={2} dot={false} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </Section>
+
+      {/* Material breakdown donut */}
+      {materialPieData.length > 0 && (
+        <Section title="Material Breakdown">
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <ResponsiveContainer width={100} height={100}>
+              <PieChart>
+                <Pie data={materialPieData} cx="50%" cy="50%" innerRadius={28} outerRadius={46} dataKey="value" strokeWidth={0}>
+                  {materialPieData.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {materialPieData.map(d => (
+                <div key={d.name} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: d.color, flexShrink: 0 }} />
+                  <span style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--color-neutral-600)" }}>{d.name}</span>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--color-neutral-900)", marginInlineStart: "auto" }}>{d.value} kg</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Section>
+      )}
 
       {/* Top materials */}
       <Section title="Top Materials This Week">

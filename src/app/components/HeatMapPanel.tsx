@@ -71,7 +71,7 @@ export function HeatMapPanel({
                   <button
                     key={d.id}
                     onClick={() => onSelect(d.id)}
-                    className="w-full text-left px-4 py-3 border-b transition-colors"
+                    className="w-full text-left px-4 py-3 border-b transition-colors focus-ring"
                     style={{
                       borderColor: "var(--color-border)",
                       background: "transparent",
@@ -81,10 +81,10 @@ export function HeatMapPanel({
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                       <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--color-text-disabled)", width: 14 }}>#{i + 1}</span>
                       {isHighPriority && (
-                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#ef4444", flexShrink: 0, display: "inline-block" }} className="animate-pulse-soft" />
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--color-danger-600)", flexShrink: 0, display: "inline-block" }} className="animate-pulse-soft" />
                       )}
                       <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-primary)", flex: 1 }}>{d.name}</span>
-                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: gapPct >= 70 ? "#ef4444" : "var(--color-text-secondary)" }}>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: gapPct >= 70 ? "var(--color-danger-600)" : "var(--color-text-secondary)" }}>
                         {gapPct}% gap
                       </span>
                     </div>

@@ -21,7 +21,7 @@ const CLIENT_TYPE_OPTIONS: { id: TypeFilter; label: string }[] = [
 ];
 
 export function PartnersView() {
-  const { clients, loading, updateTier, updateNotes } = useClients();
+  const { data: clients = [], isLoading: loading, updateTier, updateNotes } = useClients();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tierFilter, setTierFilter] = useState<TierFilter>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
@@ -49,10 +49,10 @@ export function PartnersView() {
     if (original) {
       const ops: Promise<void>[] = [];
       if (original.contractTier !== updated.contractTier) {
-        ops.push(updateTier(updated.id, updated.contractTier));
+        ops.push(updateTier.mutateAsync({ clientId: updated.id, tier: updated.contractTier }));
       }
       if (original.contractNotes !== updated.contractNotes) {
-        ops.push(updateNotes(updated.id, updated.contractNotes ?? ""));
+        ops.push(updateNotes.mutateAsync({ clientId: updated.id, notes: updated.contractNotes ?? "" }));
       }
       await Promise.all(ops);
     }
@@ -69,7 +69,10 @@ export function PartnersView() {
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center" style={{ color: "#64748B", fontFamily: "'DM Sans',sans-serif", fontSize: 13 }}>
+      <div
+        className="h-full flex items-center justify-center"
+        style={{ color: "var(--color-text-secondary)", fontSize: 13 }}
+      >
         Loading partners…
       </div>
     );
@@ -78,7 +81,7 @@ export function PartnersView() {
   return (
     <div
       className="h-full flex flex-col overflow-hidden"
-      style={{ background: "#F4F6F5", fontFamily: "'DM Sans',sans-serif" }}
+      style={{ background: "var(--color-surface)" }}
     >
       {/* MRR header */}
       <MRRStrip clients={clients} />
@@ -86,24 +89,30 @@ export function PartnersView() {
       {/* Churn alerts */}
       <ChurnAlertPanel clients={clients} onSelectClient={setSelectedId} />
 
-      {/* Filter bar */}
+      {/* Filter bar — unified with result count (reclaims a row) */}
       <div
-        className="flex items-center gap-3 px-4 py-3 border-b flex-shrink-0 flex-wrap"
-        style={{ background: "white", borderColor: "#E2E8F0" }}
+        className="flex items-center gap-3 px-4 py-2.5 border-b flex-shrink-0 flex-wrap"
+        style={{ background: "var(--color-surface-card)", borderColor: "var(--color-border)" }}
       >
         {/* Search */}
         <div className="relative" style={{ minWidth: 200 }}>
           <Search
             size={12}
             className="absolute left-3 top-1/2 -translate-y-1/2"
-            style={{ color: "#94A3B8" }}
+            style={{ color: "var(--color-text-tertiary)" }}
           />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search partners..."
-            className="pl-8 pr-3 py-1.5 rounded-lg border w-full"
-            style={{ borderColor: "#E2E8F0", fontFamily: "'DM Sans',sans-serif", fontSize: 12, outline: "none" }}
+            className="pl-8 pr-3 py-1.5 rounded-lg border w-full focus-ring"
+            style={{
+              borderColor: "var(--color-border)",
+              fontSize: 12,
+              background: "var(--color-surface-card)",
+              color: "var(--color-text-primary)",
+              outline: "none",
+            }}
           />
         </div>
 
@@ -116,13 +125,14 @@ export function PartnersView() {
               <button
                 key={id}
                 onClick={() => setTierFilter(id)}
-                className="text-[11px] px-3 py-1 rounded-full border transition-all"
+                aria-pressed={active}
+                className="px-3 py-1 rounded-full border transition-all focus-ring"
                 style={{
-                  background:  active ? (cfg?.bg   ?? "#D1FAE5") : "white",
-                  borderColor: active ? (cfg?.color ?? "#1E5C35") : "#E2E8F0",
-                  color:       active ? (cfg?.color ?? "#1E5C35") : "#64748B",
+                  background:  active ? (cfg?.bg   ?? "var(--color-brand-100)") : "var(--color-surface-card)",
+                  borderColor: active ? (cfg?.color ?? "var(--color-brand-600)") : "var(--color-border)",
+                  color:       active ? (cfg?.color ?? "var(--color-brand-600)") : "var(--color-text-secondary)",
                   fontWeight:  active ? 600 : 400,
-                  fontFamily:  "'DM Sans',sans-serif",
+                  fontSize: 11,
                 }}
               >
                 {label}
@@ -133,40 +143,53 @@ export function PartnersView() {
 
         {/* Type chips */}
         <div className="flex gap-1.5 flex-wrap ml-auto">
-          {CLIENT_TYPE_OPTIONS.map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => setTypeFilter(id)}
-              className="text-[11px] px-3 py-1 rounded-full border transition-all"
-              style={{
-                background:  typeFilter === id ? "#1E5C35" : "white",
-                borderColor: typeFilter === id ? "#1E5C35" : "#E2E8F0",
-                color:       typeFilter === id ? "white"   : "#64748B",
-                fontFamily:  "'DM Sans',sans-serif",
-              }}
-            >
-              {label}
-            </button>
-          ))}
+          {CLIENT_TYPE_OPTIONS.map(({ id, label }) => {
+            const active = typeFilter === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setTypeFilter(id)}
+                aria-pressed={active}
+                className="px-3 py-1 rounded-full border transition-all focus-ring"
+                style={{
+                  background:  active ? "var(--color-brand-600)" : "var(--color-surface-card)",
+                  borderColor: active ? "var(--color-brand-600)" : "var(--color-border)",
+                  color:       active ? "white" : "var(--color-text-secondary)",
+                  fontSize: 11,
+                  fontWeight: active ? 600 : 400,
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Inline result count — replaces the separate row */}
+        <div
+          className="flex-shrink-0 flex items-center"
+          style={{
+            paddingLeft: "var(--space-3)",
+            borderLeft: "1px solid var(--color-border)",
+            fontSize: 11,
+            color: "var(--color-text-tertiary)",
+          }}
+        >
+          {filtered.length} partner{filtered.length !== 1 ? "s" : ""}
+          {churnCount > 0 && (
+            <span style={{ color: "var(--color-amber-600)", marginLeft: 6, fontWeight: 600 }}>
+              · {churnCount} at risk
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Result count */}
-      <div className="px-4 py-2 flex items-center flex-shrink-0">
-        <span style={{ fontSize: 11, color: "#94A3B8", fontFamily: "'DM Sans',sans-serif" }}>
-          {filtered.length} partner{filtered.length !== 1 ? "s" : ""}
-          {churnCount > 0 && (
-            <span style={{ color: "#C8860A", marginLeft: 6 }}>· {churnCount} at risk</span>
-          )}
-        </span>
-      </div>
-
       {/* Card grid */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4">
         {filtered.length === 0 ? (
           <div
             className="flex items-center justify-center h-48"
-            style={{ color: "#94A3B8", fontSize: 13, fontFamily: "'DM Sans',sans-serif" }}
+            style={{ color: "var(--color-text-tertiary)", fontSize: 13 }}
           >
             No partners match your filters
           </div>

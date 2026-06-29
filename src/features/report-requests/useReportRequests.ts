@@ -36,14 +36,18 @@ export function adaptRow(row: Record<string, unknown>): ReportRequest {
 export function useReportRequests() {
   const queryClient = useQueryClient();
 
-  // Realtime subscription — invalidate on any INSERT/UPDATE/DELETE
+  // Realtime subscription — invalidate cache on any INSERT/UPDATE/DELETE.
+  // subscribe() error is handled via status callback so it never throws into React.
   useEffect(() => {
+    const uid = Math.random().toString(36).slice(2, 7);
     const channel = supabase
-      .channel("dash-report-requests")
+      .channel(`dash-report-requests-${uid}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "report_requests" },
-        () => queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+        () => {
+          queryClient.invalidateQueries({ queryKey: QUERY_KEY }).catch(() => {});
+        },
       )
       .subscribe();
     return () => {

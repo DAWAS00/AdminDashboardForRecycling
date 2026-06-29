@@ -1,7 +1,7 @@
 import {
   Droplets, Package, Zap,
   MapPin, Layers, Warehouse, BarChart2, FileText,
-  Activity, TrendingUp, Wind, Users,
+  Activity, TrendingUp, Wind, Users, ClipboardList,
 } from "lucide-react";
 import { District, Order, ViewId, Client, ClientType, ContractTier, ReportType } from "./types";
 
@@ -227,7 +227,7 @@ function seededRandom(seed: number): number {
 }
 
 function generateMetricHistory(): Record<"daily" | "weekly" | "monthly", Record<HistoryMetricKey, MetricHistoryPoint[]>> {
-  const riderNames = rawRiders.map(r => r.name);
+  const riderNames = ["Ahmad Khalil", "Sara Nassar", "Omar Zaid", "Lina Haddad", "Khalid Mansour"];
   const materialNames = Object.keys(MATERIAL_RANGES);
   const today = new Date("2026-06-24");
 
@@ -427,11 +427,12 @@ export const VAN_PATH  = "M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-
 export const HUB_PATH  = "M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35z";
 
 export const NAV_ITEMS: { icon: React.ComponentType<{ size: number }>; label: string; id: ViewId }[] = [
-  { icon: MapPin,    label: "Live Map",  id: "map"      },
-  { icon: Layers,    label: "Heat Map",  id: "heatmap"  },
-  { icon: Warehouse, label: "Hubs",      id: "hubs"     },
-  { icon: Users,     label: "Partners",  id: "partners" },
-  { icon: FileText,  label: "Reports",   id: "reports"  },
+  { icon: MapPin,         label: "Live Map",  id: "map"              },
+  { icon: Layers,         label: "Heat Map",  id: "heatmap"          },
+  { icon: Warehouse,      label: "Hubs",      id: "hubs"             },
+  { icon: Users,          label: "Partners",  id: "partners"         },
+  { icon: FileText,       label: "Reports",   id: "reports"          },
+  { icon: ClipboardList,  label: "Requests",  id: "report-requests"  },
 ];
 
 /** Layout constant — ALL panels use this width */

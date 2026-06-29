@@ -101,6 +101,9 @@ export function makeRiderIcon(rider: Rider, isSelected: boolean): L.DivIcon {
 }
 
 export function makeHubIcon(hub: Hub, isSelected: boolean): L.DivIcon {
+  // dotColor mirrors HUB_STATUS_CONFIG but Leaflet divIcon HTML requires literal
+  // color strings (CSS vars can't be resolved inside the html template), so
+  // these are kept in sync with HUB_STATUS_CONFIG in constants.ts.
   const dotColor = !hub.active ? "#94A3B8"
     : hub.status === "ready"   ? "#C8860A"
     : hub.status === "shipped" ? "#1E40AF"
@@ -112,7 +115,7 @@ export function makeHubIcon(hub: Hub, isSelected: boolean): L.DivIcon {
   return L.divIcon({
     html: `<div style="width:${size}px;height:${size}px;border-radius:6px;background:${dotColor};${shadow}display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;opacity:${hub.active?1:0.5};">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="${HUB_PATH}"/></svg>
-      <div style="position:absolute;top:${size+4}px;left:50%;transform:translateX(-50%);background:white;border:1.5px solid ${dotColor};border-radius:20px;padding:2px 8px;font-size:9px;white-space:nowrap;color:#1a1a1a;font-family:'DM Sans',sans-serif;font-weight:600;line-height:1.4;box-shadow:0 1px 4px rgba(0,0,0,0.1);">${hub.name.replace("Hub ", "")}</div>
+      <div style="position:absolute;top:${size+4}px;left:50%;transform:translateX(-50%);background:white;border:1.5px solid ${dotColor};border-radius:20px;padding:2px 8px;font-size:10px;white-space:nowrap;color:#111827;font-family:'DM Sans',sans-serif;font-weight:600;line-height:1.4;box-shadow:0 1px 4px rgba(0,0,0,0.1);">${hub.name.replace("Hub ", "")}</div>
     </div>`,
     className: "", iconSize: [size, size], iconAnchor: [size / 2, size / 2],
   });

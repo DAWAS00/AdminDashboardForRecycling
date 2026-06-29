@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Wind, Leaf, QrCode, Calendar, Building2 } from "lucide-react";
-import { CLIENTS } from "../../../constants";
+import { useClients } from "../../../../hooks/useClients";
 import { co2Equivalents } from "../../../helpers";
 
 export function Co2CertificateReport() {
-  const [clientId, setClientId] = useState(CLIENTS[0].id);
-  const client = CLIENTS.find(c => c.id === clientId) ?? CLIENTS[0];
+  const { data: clients = [] } = useClients();
+  const [clientId, setClientId] = useState<string | null>(null);
+  const activeId = clientId ?? clients[0]?.id ?? "";
+  const client = clients.find(c => c.id === activeId) ?? clients[0];
+  if (!client) return <div style={{ padding: "var(--space-4)", color: "var(--color-neutral-400)", fontFamily: "var(--font-sans)", fontSize: 13 }}>No partners loaded.</div>;
   const equiv = co2Equivalents(client.totalCo2Saved);
 
   return (
@@ -26,7 +29,7 @@ export function Co2CertificateReport() {
         </label>
         <select
           id="cert-client"
-          value={clientId}
+          value={activeId}
           onChange={e => setClientId(e.target.value)}
           style={{
             width: "100%",
@@ -38,7 +41,7 @@ export function Co2CertificateReport() {
             color: "var(--color-text-primary)",
           }}
         >
-          {CLIENTS.map(c => (
+          {clients.map(c => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>

@@ -5,13 +5,22 @@
   --color-brand-700: #0A5E3E;
   --color-brand-600: #1E5C35;
   --color-brand-500: #166534;
+  --color-brand-400: #2D8052;
+  --color-brand-300: #4ADE80;
   --color-brand-100: #D1FAE5;
   --color-brand-50:  #ECFDF5;
 
   /* Amber */
+  --color-amber-700: #A16207;
   --color-amber-600: #C8860A;
+  --color-amber-500: #F59E0B;
+  --color-amber-400: #FBBF24;
   --color-amber-100: #FEF3C7;
   --color-amber-50:  #FFFBEB;
+
+  /* Status / semantic accents */
+  --color-red-500:   #EF4444;
+  --color-status-live: #4ADE80;
 
   /* Material type colors */
   --color-oil:          #C8860A;
@@ -33,6 +42,14 @@
   --color-surface:        #F4F6F5;
   --color-surface-card:   #FFFFFF;
   --color-surface-hover:  #F8FAFB;
+
+  /* Neutral scale (aliases used across panels) */
+  --color-neutral-50:  #F8FAFB;
+  --color-neutral-100: #F1F5F9;
+  --color-neutral-400: #94A3B8;
+  --color-neutral-500: #64748B;
+  --color-neutral-900: #111827;
+  --color-neutral-950: #0B1220;
 
   /* Danger */
   --color-danger-600: #DC2626;
@@ -81,7 +98,21 @@
 
 /* Rider panel focus-visible ring utility */
 .focus-ring:focus-visible {
-  outline: 2px solid var(--ring);
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+}
+
+/* Global keyboard focus ring — anti-pattern #6 fix.
+   Applies to every focusable element unless overridden. */
+*:focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Focus ring variant for elements sitting on the dark sidebar */
+.ds-focus-ring:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
   outline-offset: 2px;
 }
 
@@ -175,3 +206,13 @@
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.25; }
 }
+
+/* ── Skeleton loading pulse ──────────────────────────────────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { background-color: #F1F5F9; }
+  50% { background-color: #E2E8F0; }
+}
+.animate-skeleton {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+

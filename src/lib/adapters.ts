@@ -41,10 +41,15 @@ function estimateCo2(material: Order["material"], weightKg: number): number {
 }
 
 function mapOrderStatus(status: SupabaseOrder["status"]): Order["status"] {
-  if (status === "inTransit") return "inTransit";
-  if (status === "completed") return "completed";
-  if (status === "accepted")  return "accepted";
-  return "pending";
+  switch (status) {
+    case "inTransit":
+    case "arrivedAtDropoff": return "inTransit";
+    case "completed":        return "completed";
+    case "accepted":
+    case "arrivedAtPickup":  return "accepted";
+    case "cancelled":        return "completed"; // treat as done in dashboard
+    default:                 return "pending";
+  }
 }
 
 function deriveRiderStatus(orders: Order[]): Rider["status"] {
@@ -68,12 +73,12 @@ export function adaptOrder(row: SupabaseOrder): Order {
     material,
     quantity:    weightKg,
     unit:        "kg",
-    address:     row.notes ?? "Jordan",
-    deliveryLat: 31.963,
-    deliveryLng: 35.910,
+    address:     row.notes ?? "Amman, Jordan",
+    deliveryLat: row.dropoff_lat ?? row.pickup_lat ?? 31.963,
+    deliveryLng: row.dropoff_lng ?? row.pickup_lng ?? 35.910,
     status:      mapOrderStatus(row.status),
     co2Saved:    estimateCo2(material, weightKg),
-    earnings:    row.reward_jd,
+    earnings:    Number(row.reward_jd),
     createdAt:   row.created_at.split("T")[0],
     completedAt: row.completed_at?.split("T")[0],
     acceptedAt:  row.accepted_at ? new Date(row.accepted_at).getTime() : undefined,
@@ -102,6 +107,7 @@ export function adaptRider(
 }
 
 export function adaptHub(row: SupabaseHub): Hub {
+  const load = (row.current_load ?? {}) as Partial<HubMaterials>;
   return {
     id:               row.id,
     name:             row.name,
@@ -110,7 +116,12 @@ export function adaptHub(row: SupabaseHub): Hub {
     lng:              Number(row.lng),
     active:           row.active,
     capacityKg:       Number(row.capacity_kg),
-    currentLoad:      row.current_load as HubMaterials,
+    currentLoad: {
+      cookingOil:  Number(load.cookingOil  ?? 0),
+      plastic:     Number(load.plastic     ?? 0),
+      paper:       Number(load.paper       ?? 0),
+      electronics: Number(load.electronics ?? 0),
+    },
     schedule:         row.schedule,
     nextShipmentDate: row.next_shipment_date ?? "",
     lastShipmentDate: row.last_shipment_date ?? "",

@@ -72,7 +72,7 @@ export interface District {
   materialBreakdown: MaterialBreakdown;
 }
 
-export type ViewId = "map" | "heatmap" | "hubs" | "partners" | "reports";
+export type ViewId = "map" | "heatmap" | "hubs" | "partners" | "reports" | "report-requests";
 
 /** Heat Map view modes — replaces the three individual toggle booleans */
 export type HeatMapViewMode = "overview" | "demand" | "hubs";

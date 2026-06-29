@@ -4,7 +4,7 @@ import { districtPriorityScore, isDistrictCovered } from "../../../helpers";
 import { useHubs } from "../../../../hooks/useHubs";
 
 export function ExpansionOpportunityReport() {
-  const { hubs } = useHubs();
+  const { data: hubs = [] } = useHubs();
   // Find uncovered / under-covered districts
   const uncovered = DISTRICTS
     .filter(d => !isDistrictCovered(d, hubs, 5))

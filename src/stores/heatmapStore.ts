@@ -1,0 +1,38 @@
+import { create } from "zustand";
+import type { HeatMapViewMode, MaterialFilter } from "../app/types";
+
+interface HeatmapState {
+  viewMode: HeatMapViewMode;
+  materialFilter: MaterialFilter;
+  selectedDistrict: string | null;
+  selectedPeriod: "today" | "week" | "month" | "custom";
+  customDateRange: { from: Date; to: Date } | null;
+
+  setViewMode: (mode: HeatMapViewMode) => void;
+  setMaterialFilter: (filter: MaterialFilter) => void;
+  selectDistrict: (name: string | null) => void;
+  toggleDistrict: (name: string) => void;
+  setPeriod: (period: HeatmapState["selectedPeriod"]) => void;
+  setCustomRange: (range: { from: Date; to: Date } | null) => void;
+  reset: () => void;
+}
+
+const initialState = {
+  viewMode: "overview" as HeatMapViewMode,
+  materialFilter: "all" as MaterialFilter,
+  selectedDistrict: null as string | null,
+  selectedPeriod: "week" as HeatmapState["selectedPeriod"],
+  customDateRange: null as { from: Date; to: Date } | null,
+};
+
+export const useHeatmapStore = create<HeatmapState>((set) => ({
+  ...initialState,
+  setViewMode: (viewMode) => set({ viewMode }),
+  setMaterialFilter: (materialFilter) => set({ materialFilter }),
+  selectDistrict: (selectedDistrict) => set({ selectedDistrict }),
+  toggleDistrict: (name) =>
+    set((s) => ({ selectedDistrict: s.selectedDistrict === name ? null : name })),
+  setPeriod: (selectedPeriod) => set({ selectedPeriod }),
+  setCustomRange: (customDateRange) => set({ customDateRange }),
+  reset: () => set(initialState),
+}));

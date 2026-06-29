@@ -4,7 +4,7 @@ import { hubCapacityPct } from "../../../helpers";
 import { useHubs } from "../../../../hooks/useHubs";
 
 export function HubEfficiencyReport() {
-  const { hubs } = useHubs();
+  const { data: hubs = [] } = useHubs();
   const activeHubs = hubs.filter(h => h.active);
   const inactiveHubs = hubs.filter(h => !h.active);
 

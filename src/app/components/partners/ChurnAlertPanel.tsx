@@ -14,16 +14,14 @@ export function ChurnAlertPanel({ clients, onSelectClient }: ChurnAlertPanelProp
   return (
     <div
       className="mx-4 mt-3 rounded-xl border p-3 flex-shrink-0"
-      style={{ background: "#FFFBEB", borderColor: "#FCD34D" }}
+      style={{
+        background: "var(--color-amber-50)",
+        borderColor: "var(--color-amber-400)",
+      }}
     >
       <div className="flex items-center gap-2 mb-2">
-        <AlertTriangle size={13} style={{ color: "#C8860A" }} />
-        <span
-          style={{
-            fontSize: 12, fontWeight: 600, color: "#92400E",
-            fontFamily: "'DM Sans',sans-serif",
-          }}
-        >
+        <AlertTriangle size={13} style={{ color: "var(--color-amber-600)" }} />
+        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-amber-700)" }}>
           {atRisk.length} partner{atRisk.length > 1 ? "s" : ""} need attention
         </span>
       </div>
@@ -36,23 +34,22 @@ export function ChurnAlertPanel({ clients, onSelectClient }: ChurnAlertPanelProp
             <button
               key={c.id}
               onClick={() => onSelectClient(c.id)}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition-all hover:shadow-sm"
-              style={{ background: "white", borderColor: "#E2E8F0" }}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition-all hover:shadow-sm focus-ring"
+              style={{
+                background: "var(--color-surface-card)",
+                borderColor: "var(--color-border)",
+              }}
             >
-              <span
-                style={{
-                  fontSize: 11, fontWeight: 600, color: "#1a1a1a",
-                  fontFamily: "'DM Sans',sans-serif",
-                }}
-              >
+              <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-text-primary)" }}>
                 {c.name}
               </span>
               <span
-                className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+                className="px-1.5 py-0.5 rounded-full font-bold"
                 style={{
-                  background: isCritical ? "#FEE2E2" : "#FEF3C7",
-                  color:      isCritical ? "#DC2626" : "#92400E",
-                  fontFamily: "'DM Mono',monospace",
+                  background: isCritical ? "var(--color-danger-100)" : "var(--color-amber-100)",
+                  color:      isCritical ? "var(--color-danger-600)" : "var(--color-amber-700)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 10,
                 }}
               >
                 {health}%

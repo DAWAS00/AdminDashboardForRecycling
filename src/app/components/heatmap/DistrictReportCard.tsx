@@ -1,4 +1,5 @@
 import { Wind, Share2, ChevronLeft } from "lucide-react";
+import { toast } from "sonner";
 import { District, Rider } from "../../types";
 import { co2Equivalents } from "../../helpers";
 
@@ -115,10 +116,12 @@ export function DistrictReportCard({ district, onBack, idleRiders }: DistrictRep
               <button
                 aria-label={`Assign ${rider.name} to ${district.name}`}
                 onClick={() => {
-                  // Phase 2: dispatch assignment action
-                  // For now: show a browser toast as confirmation
-                  alert(`${rider.name} assigned to ${district.name} (Phase 2 will wire this to real dispatch)`);
+                  // Phase 2: dispatch assignment to backend
+                  toast.success(`${rider.name} assigned to ${district.name}`, {
+                    description: "Rider dispatch — backend wiring coming in Phase 2.",
+                  });
                 }}
+                className="focus-ring"
                 style={{
                   padding: "5px 12px",
                   borderRadius: "var(--radius-sm)",

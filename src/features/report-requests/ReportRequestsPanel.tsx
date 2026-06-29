@@ -1,4 +1,5 @@
 import type { FC } from "react";
+import { Inbox } from "lucide-react";
 import { useReportRequests } from "./useReportRequests";
 import { ReportRequestRow } from "./ReportRequestRow";
 
@@ -9,10 +10,11 @@ export const ReportRequestsPanel: FC = () => {
   return (
     <div
       style={{
-        background: "var(--color-surface)",
+        background: "var(--color-surface-card)",
         borderRadius: 12,
         padding: 20,
-        border: "1px solid var(--color-neutral-200)",
+        border: "1px solid var(--color-border)",
+        boxShadow: "var(--shadow-xs)",
       }}
     >
       {/* Header */}
@@ -24,8 +26,8 @@ export const ReportRequestsPanel: FC = () => {
           marginBottom: 16,
         }}
       >
-        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>
-          Report Requests
+        <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--color-text-primary)" }}>
+          Request Queue
         </h3>
         {pending.length > 0 && (
           <span
@@ -33,12 +35,12 @@ export const ReportRequestsPanel: FC = () => {
               background: "var(--color-amber-600)",
               color: "white",
               borderRadius: "50%",
-              width: 20,
-              height: 20,
+              width: 18,
+              height: 18,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: 700,
             }}
           >
@@ -49,19 +51,23 @@ export const ReportRequestsPanel: FC = () => {
 
       {/* States */}
       {isLoading && (
-        <p style={{ color: "var(--color-neutral-400)", fontSize: 13 }}>
-          Loading requests…
-        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="animate-skeleton" style={{ height: 48, borderRadius: 8 }} />
+          ))}
+        </div>
       )}
       {error && (
-        <p style={{ color: "var(--color-red-600)", fontSize: 13 }}>
-          Failed to load requests.
-        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--color-danger-600)", fontSize: 13, background: "var(--color-danger-100)", padding: "10px 16px", borderRadius: 8 }}>
+          <span>Failed to load queue. Please try again.</span>
+        </div>
       )}
       {!isLoading && !error && requests.length === 0 && (
-        <p style={{ color: "var(--color-neutral-400)", fontSize: 13 }}>
-          No report requests yet.
-        </p>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px", textAlign: "center" }}>
+          <Inbox size={32} color="var(--color-text-tertiary)" style={{ marginBottom: 12 }} />
+          <h4 style={{ margin: "0 0 4px 0", fontSize: 13, fontWeight: 600, color: "var(--color-text-primary)" }}>No Report Requests</h4>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--color-text-tertiary)" }}>New requests will appear in this queue in real-time.</p>
+        </div>
       )}
 
       {/* Table */}

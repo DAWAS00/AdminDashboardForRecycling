@@ -1,3 +1,4 @@
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { DISTRICTS, MATERIAL_CONFIG, METRIC_HISTORY } from "../../../constants";
 import { MetricSparkline } from "../../MetricSparkline";
 
@@ -38,6 +39,26 @@ export function MaterialMarketPulseReport() {
           {totalVolume.toLocaleString()} <span style={{ fontSize: 12, color: "var(--color-text-tertiary)" }}>kg / L equivalent</span>
         </div>
       </div>
+
+      {/* Potential vs Achieved bar chart */}
+      <Section title="Potential vs Captured">
+        <ResponsiveContainer width="100%" height={140}>
+          <BarChart data={totals.map(t => ({ name: t.label.split(" ")[0], potential: t.potential, achieved: t.achieved, color: (MATERIAL_CONFIG as Record<string, { color: string }>)[t.label]?.color }))} margin={{ top: 4, right: 0, left: -24, bottom: 0 }} barCategoryGap="30%">
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+            <XAxis dataKey="name" tick={{ fontSize: 9, fill: "var(--color-neutral-400)" }} />
+            <YAxis tick={{ fontSize: 9, fill: "var(--color-neutral-400)" }} />
+            <Tooltip
+              contentStyle={{ fontFamily: "var(--font-sans)", fontSize: 11, border: "1px solid var(--color-border)", borderRadius: 6 }}
+            />
+            <Bar dataKey="potential" fill="var(--color-neutral-200)" name="Potential" radius={[2,2,0,0]} />
+            <Bar dataKey="achieved"  name="Captured"  radius={[2,2,0,0]}>
+              {totals.map((t, i) => (
+                <Cell key={i} fill={(MATERIAL_CONFIG as Record<string, { color: string }>)[t.label]?.color ?? "var(--color-brand-600)"} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </Section>
 
       <Section title="By Material">
         {totals.map(({ label, potential, achieved, topDistrict, history }) => {
