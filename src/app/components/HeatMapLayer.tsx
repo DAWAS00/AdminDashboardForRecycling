@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
+import { useTheme } from "next-themes";
+import { useHeatmapStore } from "../../stores/heatmapStore";
 import { District, Hub, MaterialFilter, HeatMapViewMode } from "../types";
 import { AMMAN_CENTER } from "../constants";
 import { districtFillColor, districtFillColorForMaterial } from "../helpers";
@@ -41,7 +43,7 @@ const AMMAN_BOUNDARY: [number, number][] = [
   [32.030, 35.830], // close loop
 ];
 
-function generateDistrictPoints(d: District): [number, number][] {
+function generateDistrictPoints(d: District, timeOfDay: string): [number, number][] {
   const points: [number, number][] = [];
   const count = d.orderCount;
   
@@ -54,6 +56,10 @@ function generateDistrictPoints(d: District): [number, number][] {
   for (let i = 0; i < d.id.length; i++) {
     seed += d.id.charCodeAt(i);
   }
+
+  // Offset seed dynamically depending on simulation hour slots
+  if (timeOfDay === "afternoon") seed += 100;
+  if (timeOfDay === "evening") seed += 200;
 
   const pseudorandom = () => {
     const x = Math.sin(seed++) * 10000;
@@ -96,8 +102,11 @@ export function HeatMapLayer({
   showDensityHeat,
   showHubCoverage,
 }: HeatMapLayerProps) {
+  const { resolvedTheme } = useTheme();
+  const timeOfDay = useHeatmapStore((s) => s.timeOfDay);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef       = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
 
   const polygonsRef       = useRef<Record<string, L.Polygon>>({});
   const centroidLayersRef = useRef<L.Layer[]>([]);
@@ -110,19 +119,16 @@ export function HeatMapLayer({
   const onSelectRef   = useRef(onSelect);
   onSelectRef.current = onSelect;
 
-  // Initialize Map
+  // Initialize Map with preferCanvas for rendering performance
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
     const map = L.map(containerRef.current, {
       center: AMMAN_CENTER,
       zoom: 12,
       zoomControl: false,
-      attributionControl: false
+      attributionControl: false,
+      preferCanvas: true // CRITICAL: renders vectors onto a single canvas sheet to prevent layout lag
     });
-    
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      maxZoom: 19
-    }).addTo(map);
     
     L.control.attribution({
       prefix: "© OpenStreetMap © CARTO",
@@ -140,6 +146,25 @@ export function HeatMapLayer({
       setMapInitialized(false);
     };
   }, []);
+
+  // Update map tiles dynamically when theme changes (light mode vs dark mode design system matching)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapInitialized) return;
+
+    if (tileLayerRef.current) {
+      tileLayerRef.current.remove();
+    }
+
+    const isDark = resolvedTheme === "dark";
+    const tileUrl = isDark
+      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+      : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+
+    tileLayerRef.current = L.tileLayer(tileUrl, {
+      maxZoom: 19
+    }).addTo(map);
+  }, [resolvedTheme, mapInitialized]);
 
   // Districts Choropleth + Glowing Centroids
   useEffect(() => {
@@ -197,8 +222,47 @@ export function HeatMapLayer({
       }).addTo(map);
 
       centroidLayersRef.current.push(centroidGlow1, centroidGlow2, centerPulse);
+
+      // Glowing selected centroid pulsing radar ring (CSS animated DIV Icon)
+      if (isSelected) {
+        const radarMarker = L.marker(d.centroid as L.LatLngExpression, {
+          icon: L.divIcon({
+            html: `
+              <div class="radar-pulse-container" style="position:relative; width:60px; height:60px; display:flex; align-items:center; justify-content:center;">
+                <div class="radar-pulse-ring" style="position:absolute; width:100%; height:100%; border-radius:50%; border:2px solid ${fillColor}; opacity:0; animation: radarSweep 2s infinite ease-out;"></div>
+                <div style="width:8px; height:8px; border-radius:50%; background:${fillColor}; border:1.5px solid white; box-shadow:0 0 8px ${fillColor}; z-index:2;"></div>
+              </div>
+            `,
+            className: "",
+            iconSize: [60, 60],
+            iconAnchor: [30, 30],
+          })
+        }).addTo(map);
+        centroidLayersRef.current.push(radarMarker);
+      }
     });
   }, [mapInitialized, districts, selectedId, materialFilter]);
+
+  // Zoom & Center camera transition when district is selected (Dribbble/Kepler flyTo pattern)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapInitialized) return;
+
+    if (selectedId) {
+      const district = districts.find(d => d.id === selectedId);
+      if (district) {
+        map.flyTo(district.centroid as L.LatLngExpression, 13.5, {
+          animate: true,
+          duration: 1.2, // 1.2s smooth ease-in-out transition
+        });
+      }
+    } else {
+      map.flyTo(AMMAN_CENTER, 12, {
+        animate: true,
+        duration: 1.0, // zoom out overview
+      });
+    }
+  }, [selectedId, mapInitialized, districts]);
 
   // Amman Boundary Effect
   useEffect(() => {
@@ -227,7 +291,7 @@ export function HeatMapLayer({
     }
   }, [mapInitialized, showAmmanBoundary]);
 
-  // Heatmap Density Dots Effect
+  // Heatmap Density Dots Effect (optimized to draw lightweight single canvas circles)
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapInitialized) return;
@@ -238,30 +302,23 @@ export function HeatMapLayer({
     if (showDensityHeat) {
       districts.forEach(d => {
         const fillColor = districtFillColorForMaterial(d, materialFilter);
-        const pts = generateDistrictPoints(d);
+        const pts = generateDistrictPoints(d, timeOfDay);
         
         pts.forEach(pt => {
-          const core = L.circleMarker(pt, {
-            radius: 3.5,
-            color: fillColor,
-            fillColor: "white",
-            fillOpacity: 0.9,
-            weight: 1,
-            opacity: 0.8,
-          }).addTo(map);
-
-          const halo = L.circleMarker(pt, {
-            radius: 12,
+          // Renders directly to canvas buffer for exceptional pan/zoom speed
+          const dot = L.circleMarker(pt, {
+            radius: 5.5,
             color: "transparent",
             fillColor: fillColor,
-            fillOpacity: 0.14,
+            fillOpacity: 0.7,
+            weight: 0,
           }).addTo(map);
 
-          densityLayersRef.current.push(core, halo);
+          densityLayersRef.current.push(dot);
         });
       });
     }
-  }, [mapInitialized, districts, showDensityHeat, materialFilter]);
+  }, [mapInitialized, districts, showDensityHeat, materialFilter, timeOfDay]);
 
   // Rider Hotspots Effect
   useEffect(() => {
@@ -319,6 +376,10 @@ export function HeatMapLayer({
       <style>{`
         @keyframes hotspotPulse {
           0% { transform: scale(0.2); opacity: 0.9; }
+          100% { transform: scale(1.3); opacity: 0; }
+        }
+        @keyframes radarSweep {
+          0% { transform: scale(0.2); opacity: 0.95; }
           100% { transform: scale(1.3); opacity: 0; }
         }
       `}</style>

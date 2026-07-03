@@ -1,7 +1,9 @@
-import { Wind, Share2, ChevronLeft } from "lucide-react";
+import { Wind, Share2, ChevronLeft, Users } from "lucide-react";
 import { toast } from "sonner";
 import { District, Rider } from "../../types";
 import { co2Equivalents } from "../../helpers";
+import { useClients } from "../../../hooks/useClients";
+import { TIER_CONFIG } from "../../constants";
 
 interface DistrictReportCardProps {
   district: District;
@@ -10,10 +12,28 @@ interface DistrictReportCardProps {
 }
 
 export function DistrictReportCard({ district, onBack, idleRiders }: DistrictReportCardProps) {
+  const { data: clients = [] } = useClients();
   const gap        = district.co2Potential - district.co2Achieved;
   const achievedPct = Math.round((district.co2Achieved / district.co2Potential) * 100);
   const gapPct      = 100 - achievedPct;
   const equiv       = co2Equivalents(district.co2Achieved);
+
+  // Filter B2B clients active in this specific district
+  const cleanDistrict = district.name.toLowerCase();
+  const districtClients = clients.filter(client => {
+    const cleanAddr = client.address.toLowerCase();
+    if (cleanDistrict.includes("downtown") && cleanAddr.includes("downtown")) return true;
+    if (cleanDistrict.includes("shmeisani") && cleanAddr.includes("shmesani")) return true;
+    if (cleanDistrict.includes("sweifieh") && cleanAddr.includes("sweifieh")) return true;
+    if (cleanDistrict.includes("abdoun") && cleanAddr.includes("abdoun")) return true;
+    if (cleanDistrict.includes("jubaiha") && cleanAddr.includes("jubaiha")) return true;
+    if (cleanDistrict.includes("tabarbour") && cleanAddr.includes("tabarbour")) return true;
+    if (cleanDistrict.includes("8th circle") && cleanAddr.includes("8th circle")) return true;
+    if (cleanDistrict.includes("university") && cleanAddr.includes("university")) return true;
+    if (cleanDistrict.includes("tlaa al-ali") && cleanAddr.includes("tlaa")) return true;
+    if (cleanDistrict.includes("airport road") && cleanAddr.includes("airport")) return true;
+    return false;
+  });
 
   const MATERIAL_KEYS = [
     { key: "cookingOil" as const,  label: "Cooking Oil",       color: "var(--color-oil)",     bg: "var(--color-oil-bg)"     },
@@ -189,6 +209,61 @@ export function DistrictReportCard({ district, onBack, idleRiders }: DistrictRep
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--color-brand-600)" }}>{value}</span>
           </div>
         ))}
+      </div>
+
+      {/* B2B Clients in District */}
+      <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--color-border)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 700, color: "var(--color-text-tertiary)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+          <Users size={12} style={{ color: "var(--color-brand-600)" }} />
+          B2B Partners ({districtClients.length})
+        </div>
+        {districtClients.length === 0 ? (
+          <div style={{ fontSize: 11, color: "var(--color-text-disabled)", padding: "4px 0" }}>
+            No active B2B partners registered in this district.
+          </div>
+        ) : (
+          districtClients.map(client => {
+            const tc = TIER_CONFIG[client.contractTier];
+            return (
+              <div
+                key={client.id}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  padding: "8px 12px",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--color-border)",
+                  background: "var(--color-surface)",
+                  marginBottom: "8px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-primary)" }}>
+                    {client.name}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      padding: "1px 6px",
+                      borderRadius: "var(--radius-full)",
+                      background: tc.bg,
+                      color: tc.color,
+                      border: `1px solid ${tc.borderColor}`,
+                    }}
+                  >
+                    {client.contractTier}
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--color-text-secondary)" }}>
+                  <span>CO₂ Saved: <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--color-brand-600)" }}>{Math.round(client.totalCo2Saved)} kg</span></span>
+                  <span>Points: <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{client.greenPoints}</span></span>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* Share button (Phase 2 — disabled placeholder) */}
