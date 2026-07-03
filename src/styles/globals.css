@@ -83,7 +83,7 @@
 
   /* Layout */
   --panel-width:    288px;
-  --sidebar-width:  200px;
+  --sidebar-width:  240px;
   --header-height:   52px;
   --statsbar-height: 60px;
 
@@ -214,5 +214,40 @@
 }
 .animate-skeleton {
   animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Print Media Overrides ────────────────────────────────────────────────── */
+@media print {
+  body {
+    background: white !important;
+    color: #111827 !important;
+  }
+  
+  /* Hide navigation controls, sidebars, and buttons during print/save */
+  aside,
+  nav,
+  header,
+  button,
+  .sidebar,
+  .navbar,
+  .controls,
+  .sheet-backdrop,
+  [role="dialog"] {
+    display: none !important;
+  }
+  
+  .print-container {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: white !important;
+  }
+  
+  .page-break-avoid {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
 }
 

@@ -28,6 +28,8 @@ export default defineConfig({
     alias: {
       // Alias @ to the src directory
       '@': path.resolve(__dirname, './src'),
+      // Redirect html2canvas to html2canvas-pro to support OKLCH color parsing
+      'html2canvas': 'html2canvas-pro',
     },
   },
 

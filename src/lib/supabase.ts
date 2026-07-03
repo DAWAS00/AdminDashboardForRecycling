@@ -47,6 +47,7 @@ export const supabase: SupabaseClient = createClient(
 
 export interface SupabaseProfile {
   auth_id: string;
+  fcm_token: string | null;
   name: string;
   phone: string;
   email: string | null;
@@ -104,6 +105,18 @@ export interface SupabaseOrder {
   pickup_lng: number | null;
   dropoff_lat: number | null;
   dropoff_lng: number | null;
+}
+
+export interface SupabaseNotification {
+  id: string;
+  recipient_id: string;
+  type: string;
+  title: string;
+  body: string;
+  order_id: string | null;
+  job_id: string | null;
+  is_read: boolean;
+  created_at: string;
 }
 
 export interface SupabaseDriverLocation {
