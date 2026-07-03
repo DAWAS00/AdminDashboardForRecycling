@@ -72,7 +72,7 @@ export interface District {
   materialBreakdown: MaterialBreakdown;
 }
 
-export type ViewId = "map" | "heatmap" | "hubs" | "partners" | "reports" | "report-requests";
+export type ViewId = "map" | "heatmap" | "hubs" | "partners" | "reports" | "report-requests" | "dispatch" | "users";
 
 /** Heat Map view modes — replaces the three individual toggle booleans */
 export type HeatMapViewMode = "overview" | "demand" | "hubs";
@@ -117,7 +117,9 @@ export type ReportType =
   | "district-intelligence"
   | "material-pulse"
   | "expansion-opportunity"
-  | "co2-certificate";
+  | "co2-certificate"
+  | "monthly-invoice"
+  | "esg-report";
 
 export interface Route {
   coords: [number, number][];

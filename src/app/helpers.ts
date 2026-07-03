@@ -20,11 +20,13 @@ import {
 export function districtFillColor(d: District): string {
   const gap = d.co2Potential - d.co2Achieved;
   const gapPct = gap / d.co2Potential;
-  if (gapPct >= 0.7) return "#ef4444"; // high unrealized — red
-  if (gapPct >= 0.5) return "#f59e0b"; // amber
-  if (gapPct >= 0.3) return "#84cc16"; // light green
-  if (gapPct >= 0.1) return "#22c55e"; // green
-  return "#1E5C35";                    // dark green — almost fully captured
+  
+  // Interpolates between Forest Green HSL(142, 51%, 24%) for low gap and Amber Gold HSL(39, 91%, 41%) for high gap
+  const boundedPct = Math.max(0, Math.min(1, gapPct));
+  const h = Math.round(142 + (39 - 142) * boundedPct);
+  const s = Math.round(51 + (91 - 51) * boundedPct);
+  const l = Math.round(24 + (41 - 24) * boundedPct);
+  return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
 /** Returns fill color for a district when filtered by a specific material */
@@ -44,13 +46,15 @@ export function districtFillColorForMaterial(
   if (!key) return districtFillColor(d);
 
   const mat = d.materialBreakdown[key];
-  if (!mat || mat.potential === 0) return "#E2E8F0"; // no data — gray
+  if (!mat || mat.potential === 0) return "var(--color-border)"; // no data — desaturated border color
   const gapPct = (mat.potential - mat.achieved) / mat.potential;
-  if (gapPct >= 0.7) return "#ef4444";
-  if (gapPct >= 0.5) return "#f59e0b";
-  if (gapPct >= 0.3) return "#84cc16";
-  if (gapPct >= 0.1) return "#22c55e";
-  return "#1E5C35";
+  
+  // Interpolates between Forest Green and Amber Gold based on gap percentage
+  const boundedPct = Math.max(0, Math.min(1, gapPct));
+  const h = Math.round(142 + (39 - 142) * boundedPct);
+  const s = Math.round(51 + (91 - 51) * boundedPct);
+  const l = Math.round(24 + (41 - 24) * boundedPct);
+  return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
 export function hubCapacityPct(hub: Hub): number {

@@ -2,6 +2,7 @@ import {
   Droplets, Package, Zap,
   MapPin, Layers, Warehouse, BarChart2, FileText,
   Activity, TrendingUp, Wind, Users, ClipboardList,
+  Truck, Users2, Award,
 } from "lucide-react";
 import { District, Order, ViewId, Client, ClientType, ContractTier, ReportType } from "./types";
 
@@ -19,10 +20,13 @@ export const STATUS_CONFIG = {
 };
 
 export const ORDER_STATUS = {
-  pending:   { label: "Pending",    color: "#C8860A", bg: "#FEF3C7" },
-  accepted:  { label: "Accepted",   color: "#1E5C35", bg: "#D1FAE5" },
-  inTransit: { label: "In Transit", color: "#1E40AF", bg: "#DBEAFE" },
-  completed: { label: "Completed",  color: "#166534", bg: "#DCFCE7" },
+  pending:          { label: "Pending",          color: "#C8860A", bg: "#FEF3C7" },
+  accepted:         { label: "Accepted",         color: "#1E5C35", bg: "#D1FAE5" },
+  arrivedAtPickup:  { label: "At Pickup",        color: "#0369A1", bg: "#E0F2FE" },
+  inTransit:        { label: "In Transit",       color: "#1E40AF", bg: "#DBEAFE" },
+  arrivedAtDropoff: { label: "At Dropoff",       color: "#7C3AED", bg: "#EDE9FE" },
+  completed:        { label: "Completed",        color: "#166534", bg: "#DCFCE7" },
+  cancelled:        { label: "Cancelled",        color: "#991B1B", bg: "#FEE2E2" },
 };
 
 export const ORDER_STATUS_ORDER: Order["status"][] = ["pending", "accepted", "inTransit", "completed"];
@@ -418,6 +422,8 @@ export const REPORT_TEMPLATES: {
   { id: "material-pulse",        title: "Material Market Pulse",     subtitle: "Volume trends by material type",      audience: "executive",  icon: Activity   },
   { id: "expansion-opportunity", title: "Expansion Opportunity Map", subtitle: "Uncovered districts & hub gaps",      audience: "executive",  icon: TrendingUp },
   { id: "co2-certificate",       title: "CO₂ Impact Certificate",    subtitle: "Client-branded impact proof",         audience: "client",     icon: Wind       },
+  { id: "monthly-invoice",       title: "Monthly Invoice",           subtitle: "Reclaimable credits & service billing", audience: "client",     icon: FileText   },
+  { id: "esg-report",            title: "ESG Performance Report",    subtitle: "Carbon offset & diversion metrics",      audience: "executive",  icon: Award      },
 ];
 
 export const AMMAN_CENTER: [number, number] = [31.963, 35.905];
@@ -433,7 +439,47 @@ export const NAV_ITEMS: { icon: React.ComponentType<{ size: number }>; label: st
   { icon: Users,          label: "Partners",  id: "partners"         },
   { icon: FileText,       label: "Reports",   id: "reports"          },
   { icon: ClipboardList,  label: "Requests",  id: "report-requests"  },
+  { icon: Truck,          label: "Dispatch",  id: "dispatch"         },
+  { icon: Users2,         label: "Users",     id: "users"            },
 ];
+
+export interface NavItem {
+  icon: React.ComponentType<{ size: number }>;
+  label: string;
+  id: ViewId;
+}
+
+export interface NavSection {
+  label: string;
+  items: NavItem[];
+}
+
+export const NAV_SECTIONS: NavSection[] = [
+  {
+    label: "GENERAL",
+    items: [
+      { icon: MapPin,    label: "Live Map",  id: "map" },
+      { icon: Layers,    label: "Heat Map",  id: "heatmap" },
+      { icon: Warehouse, label: "Hubs",      id: "hubs" },
+    ],
+  },
+  {
+    label: "OPERATIONS",
+    items: [
+      { icon: Truck,         label: "Dispatch",  id: "dispatch"        },
+      { icon: Users2,        label: "Users",     id: "users"           },
+    ],
+  },
+  {
+    label: "REPORTS",
+    items: [
+      { icon: Users,         label: "Partners",  id: "partners" },
+      { icon: FileText,      label: "Reports",   id: "reports" },
+      { icon: ClipboardList, label: "Requests",  id: "report-requests" },
+    ],
+  },
+];
+
 
 /** Layout constant — ALL panels use this width */
 export const PANEL_WIDTH = 288;
