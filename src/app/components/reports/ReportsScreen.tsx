@@ -9,6 +9,8 @@ const GALLERY_WIDTH = 296;
 
 export function ReportsScreen() {
   const [selected, setSelected] = useState<ReportType>("weekly-operations");
+  const [isFullWidth, setIsFullWidth] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <div
@@ -22,10 +24,14 @@ export function ReportsScreen() {
       <aside
         className="flex flex-col min-h-0 border-r"
         style={{
-          width: GALLERY_WIDTH,
+          width: sidebarCollapsed ? 0 : GALLERY_WIDTH,
+          opacity: sidebarCollapsed ? 0 : 1,
+          pointerEvents: sidebarCollapsed ? "none" : "auto",
+          transition: "width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease-in-out",
           flexShrink: 0,
           background: "var(--color-surface-card)",
           borderColor: "var(--color-border)",
+          overflow: "hidden",
         }}
       >
         <div
@@ -67,7 +73,13 @@ export function ReportsScreen() {
 
       {/* Preview — gets the full remaining width */}
       <div className="flex-1 min-w-0 flex">
-        <ReportPreviewPanel reportId={selected} />
+        <ReportPreviewPanel
+          reportId={selected}
+          isFullWidth={isFullWidth}
+          setIsFullWidth={setIsFullWidth}
+          sidebarCollapsed={sidebarCollapsed}
+          setSidebarCollapsed={setSidebarCollapsed}
+        />
       </div>
     </div>
   );

@@ -29,19 +29,24 @@ const NEXT_STATUS: Record<ReportStatus, ReportStatus | null> = {
 };
 
 export const ReportRequestRow: FC<{ request: ReportRequest }> = ({ request }) => {
-  const { updateStatus } = useReportRequests();
-  const [downloadInput, setDownloadInput] = useState("");
+  const { updateStatus, generateAndUploadPdf } = useReportRequests();
 
   const next = NEXT_STATUS[request.status];
   const canAdvance = next !== null;
+
+  const isGenerating = generateAndUploadPdf.isPending && generateAndUploadPdf.variables?.id === request.id;
+  const isPendingAny = updateStatus.isPending || generateAndUploadPdf.isPending;
 
   function handleAdvance() {
     if (!next) return;
     updateStatus.mutate({
       id: request.id,
       status: next,
-      downloadUrl: next === "ready" ? downloadInput || undefined : undefined,
     });
+  }
+
+  function handleGeneratePdf() {
+    generateAndUploadPdf.mutate(request);
   }
 
   return (
@@ -64,36 +69,21 @@ export const ReportRequestRow: FC<{ request: ReportRequest }> = ({ request }) =>
             borderRadius: 6,
             fontSize: 11,
             fontWeight: 600,
-            background: `${STATUS_COLORS[request.status]}20`,
-            color: STATUS_COLORS[request.status],
+            background: isGenerating ? "rgba(29, 78, 216, 0.1)" : `${STATUS_COLORS[request.status]}20`,
+            color: isGenerating ? "var(--color-blue-600)" : STATUS_COLORS[request.status],
           }}
         >
-          {STATUS_LABELS[request.status]}
+          {isGenerating ? "Generating..." : STATUS_LABELS[request.status]}
         </span>
       </td>
       <td style={{ padding: "10px 12px", fontSize: 12 }}>
         {new Date(request.requestedAt).toLocaleDateString()}
       </td>
       <td style={{ padding: "10px 12px" }}>
-        {request.status === "processing" && (
-          <input
-            placeholder="Download URL (optional)"
-            value={downloadInput}
-            onChange={(e) => setDownloadInput(e.target.value)}
-            style={{
-              fontSize: 11,
-              border: "1px solid var(--color-neutral-200)",
-              borderRadius: 6,
-              padding: "4px 8px",
-              marginRight: 8,
-              width: 200,
-            }}
-          />
-        )}
-        {canAdvance && (
+        {request.status === "pending" && (
           <button
             onClick={handleAdvance}
-            disabled={updateStatus.isPending}
+            disabled={isPendingAny}
             style={{
               fontSize: 11,
               padding: "4px 12px",
@@ -101,12 +91,31 @@ export const ReportRequestRow: FC<{ request: ReportRequest }> = ({ request }) =>
               background: "var(--color-brand-600)",
               color: "white",
               border: "none",
-              cursor: updateStatus.isPending ? "not-allowed" : "pointer",
+              cursor: isPendingAny ? "not-allowed" : "pointer",
               fontWeight: 600,
-              opacity: updateStatus.isPending ? 0.6 : 1,
+              opacity: isPendingAny ? 0.6 : 1,
             }}
           >
-            {request.status === "pending" ? "Mark Processing" : "Mark Ready"}
+            Mark Processing
+          </button>
+        )}
+        {request.status === "processing" && (
+          <button
+            onClick={handleGeneratePdf}
+            disabled={isPendingAny}
+            style={{
+              fontSize: 11,
+              padding: "4px 12px",
+              borderRadius: 6,
+              background: "var(--color-brand-600)",
+              color: "white",
+              border: "none",
+              cursor: isPendingAny ? "not-allowed" : "pointer",
+              fontWeight: 600,
+              opacity: isPendingAny ? 0.6 : 1,
+            }}
+          >
+            {isGenerating ? "Generating & Uploading..." : "Generate & Upload PDF"}
           </button>
         )}
         {request.status === "ready" && request.downloadUrl && (
@@ -114,9 +123,14 @@ export const ReportRequestRow: FC<{ request: ReportRequest }> = ({ request }) =>
             href={request.downloadUrl}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ fontSize: 11, color: "var(--color-brand-600)" }}
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: "var(--color-brand-600)",
+              textDecoration: "underline",
+            }}
           >
-            Download
+            Download PDF
           </a>
         )}
       </td>

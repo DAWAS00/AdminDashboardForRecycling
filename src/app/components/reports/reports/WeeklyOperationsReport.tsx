@@ -8,10 +8,31 @@ import { computeTotals } from "../../../helpers";
 import { MetricSparkline } from "../../MetricSparkline";
 import { useRiders } from "../../../../hooks/useRiders";
 
-export function WeeklyOperationsReport() {
+export interface WeeklyOperationsReportProps {
+  periodStart?: string;
+  periodEnd?: string;
+  hideControls?: boolean;
+}
+
+export function WeeklyOperationsReport({ periodStart, periodEnd, hideControls = false }: WeeklyOperationsReportProps) {
   const { data: riders = [] } = useRiders();
-  const totals = computeTotals(riders);
-  const allOrders = riders.flatMap(r => r.orders);
+  
+  let allOrders = riders.flatMap(r => r.orders);
+  if (periodStart || periodEnd) {
+    allOrders = allOrders.filter(o => {
+      if (!o.createdAt) return false;
+      const date = o.createdAt.slice(0, 10); // YYYY-MM-DD
+      if (periodStart && date < periodStart) return false;
+      if (periodEnd && date > periodEnd) return false;
+      return true;
+    });
+  }
+
+  const totals = {
+    co2: allOrders.reduce((s, o) => s + o.co2Saved, 0),
+    earnings: allOrders.reduce((s, o) => s + o.earnings, 0),
+  };
+
   const completedOrders = allOrders.filter(o => o.status === "completed");
   const activeOrders = allOrders.filter(o => o.status !== "completed");
 
@@ -36,7 +57,7 @@ export function WeeklyOperationsReport() {
   }));
 
   return (
-    <div style={{ padding: "var(--space-4)" }}>
+    <div style={{ padding: hideControls ? "0" : "var(--space-4)" }}>
       {/* Header */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 2 }}>

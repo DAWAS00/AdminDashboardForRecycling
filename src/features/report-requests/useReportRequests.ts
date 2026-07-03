@@ -96,5 +96,128 @@ export function useReportRequests() {
     onError: () => toast.error("Failed to update report status."),
   });
 
-  return { ...query, updateStatus };
+  const generateAndUploadPdf = useMutation({
+    mutationFn: async (request: ReportRequest) => {
+      // 1. Create off-screen container element
+      const container = document.createElement("div");
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.style.width = "800px";
+      container.style.background = "white";
+      document.body.appendChild(container);
+
+      // Dynamic react element creation based on template
+      const React = await import("react");
+      const { createRoot } = await import("react-dom/client");
+      const { generatePdfBlob } = await import("./pdfGenerator");
+      
+      const { WeeklyOperationsReport } = await import("../../app/components/reports/reports/WeeklyOperationsReport");
+      const { Co2CertificateReport } = await import("../../app/components/reports/reports/Co2CertificateReport");
+      const { MonthlyInvoiceReport } = await import("../../app/components/reports/reports/MonthlyInvoiceReport");
+      const { EsgReport } = await import("../../app/components/reports/reports/EsgReport");
+
+      let element;
+      if (request.template === "co2Certificate") {
+        element = React.createElement(Co2CertificateReport, {
+          clientId: request.userId,
+          hideControls: true,
+        });
+      } else if (request.template === "weeklySummary") {
+        element = React.createElement(WeeklyOperationsReport, {
+          periodStart: request.periodStart,
+          periodEnd: request.periodEnd,
+          hideControls: true,
+        });
+      } else if (request.template === "monthlyInvoice") {
+        element = React.createElement(MonthlyInvoiceReport, {
+          clientId: request.userId,
+          periodStart: request.periodStart,
+          periodEnd: request.periodEnd,
+          hideControls: true,
+        });
+      } else if (request.template === "esgReport") {
+        element = React.createElement(EsgReport, {
+          clientId: request.userId,
+          periodStart: request.periodStart,
+          periodEnd: request.periodEnd,
+          hideControls: true,
+        });
+      } else {
+        element = React.createElement("div", {}, "Unknown template type");
+      }
+
+      const root = createRoot(container);
+      root.render(element);
+
+      // Wait 1.5s for fonts, SVG chart rendering, and layout calculations
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      try {
+        // 2. Generate PDF
+        const filename = `${request.template}-${request.id.slice(0, 8)}.pdf`;
+        const blob = await generatePdfBlob(container, filename);
+
+        // Clean up DOM container
+        root.unmount();
+        container.remove();
+
+        // 3. Ensure Supabase storage bucket exists
+        try {
+          const { data: buckets } = await supabase.storage.listBuckets();
+          const bucketExists = buckets?.some((b) => b.name === "reports");
+          if (!bucketExists) {
+            await supabase.storage.createBucket("reports", { public: true });
+          }
+        } catch (bucketErr) {
+          console.warn("Storage bucket listing/creation warning:", bucketErr);
+        }
+
+        // 4. Upload PDF
+        const filePath = `${request.userId}/${filename}`;
+        const { error: uploadError } = await supabase.storage
+          .from("reports")
+          .upload(filePath, blob, {
+            contentType: "application/pdf",
+            upsert: true,
+          });
+
+        if (uploadError) throw new Error(`Upload error: ${uploadError.message}`);
+
+        // 5. Get public download URL
+        const { data: { publicUrl } } = supabase.storage
+          .from("reports")
+          .getPublicUrl(filePath);
+
+        // 6. Update database record status and URL
+        const { error: dbError } = await supabase
+          .from("report_requests")
+          .update({
+            status: "ready",
+            download_url: publicUrl,
+            fulfilled_at: new Date().toISOString(),
+          })
+          .eq("id", request.id);
+
+        if (dbError) throw new Error(`Database error: ${dbError.message}`);
+
+        return publicUrl;
+      } catch (err: any) {
+        // Clean up on error
+        try {
+          root.unmount();
+          container.remove();
+        } catch (cleanupErr) {}
+        throw err;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      toast.success("PDF report generated and uploaded successfully.");
+    },
+    onError: (err: any) => {
+      toast.error(`PDF generation failed: ${err.message || err}`);
+    },
+  });
+
+  return { ...query, updateStatus, generateAndUploadPdf };
 }

@@ -1,4 +1,5 @@
-import { Printer, Download, Share2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Printer, Download, Share2, Maximize2, Minimize2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import type { ReportType } from "../../types";
 import { REPORT_TEMPLATES } from "../../constants";
@@ -8,9 +9,15 @@ import { DistrictIntelligenceReport } from "./reports/DistrictIntelligenceReport
 import { MaterialMarketPulseReport }  from "./reports/MaterialMarketPulseReport";
 import { ExpansionOpportunityReport } from "./reports/ExpansionOpportunityReport";
 import { Co2CertificateReport }       from "./reports/Co2CertificateReport";
+import { MonthlyInvoiceReport }       from "./reports/MonthlyInvoiceReport";
+import { EsgReport }                  from "./reports/EsgReport";
 
 interface ReportPreviewPanelProps {
   reportId: ReportType;
+  isFullWidth?: boolean;
+  setIsFullWidth?: (val: boolean) => void;
+  sidebarCollapsed?: boolean;
+  setSidebarCollapsed?: (val: boolean) => void;
 }
 
 const REPORT_COMPONENTS: Record<ReportType, React.ComponentType> = {
@@ -20,6 +27,8 @@ const REPORT_COMPONENTS: Record<ReportType, React.ComponentType> = {
   "material-pulse":        MaterialMarketPulseReport,
   "expansion-opportunity": ExpansionOpportunityReport,
   "co2-certificate":       Co2CertificateReport,
+  "monthly-invoice":       MonthlyInvoiceReport,
+  "esg-report":            EsgReport,
 };
 
 const AUDIENCE_BADGE: Record<string, { text: string; color: string; bg: string }> = {
@@ -28,10 +37,46 @@ const AUDIENCE_BADGE: Record<string, { text: string; color: string; bg: string }
   client:     { text: "Client",    color: "var(--color-oil)",       bg: "var(--color-oil-bg)"   },
 };
 
-export function ReportPreviewPanel({ reportId }: ReportPreviewPanelProps) {
+export function ReportPreviewPanel({
+  reportId,
+  isFullWidth = false,
+  setIsFullWidth,
+  sidebarCollapsed = false,
+  setSidebarCollapsed,
+}: ReportPreviewPanelProps) {
   const meta = REPORT_TEMPLATES.find(t => t.id === reportId)!;
   const Report = REPORT_COMPONENTS[reportId];
   const audience = AUDIENCE_BADGE[meta.audience];
+
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current) return;
+    setDownloading(true);
+    const toastId = toast.loading(`Generating PDF for ${meta.title}...`);
+    try {
+      const { generatePdfBlob } = await import("../../../features/report-requests/pdfGenerator");
+      const filename = `${reportId}-${new Date().toISOString().slice(0, 10)}.pdf`;
+      const blob = await generatePdfBlob(reportRef.current, filename);
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success("PDF downloaded successfully!", { id: toastId });
+    } catch (err: any) {
+      console.error(err);
+      toast.error(`Failed to generate PDF: ${err.message || err}`, { id: toastId });
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <div
@@ -77,7 +122,34 @@ export function ReportPreviewPanel({ reportId }: ReportPreviewPanelProps) {
           </div>
         </div>
 
-        <div className="flex gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Sidebar Toggle */}
+          {setSidebarCollapsed && (
+            <ToolbarButton
+              icon={sidebarCollapsed ? ChevronRight : ChevronLeft}
+              label={sidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            />
+          )}
+
+          {/* Full Width Toggle */}
+          {setIsFullWidth && (
+            <ToolbarButton
+              icon={isFullWidth ? Minimize2 : Maximize2}
+              label={isFullWidth ? "Center Fit" : "Full Width"}
+              onClick={() => setIsFullWidth(!isFullWidth)}
+            />
+          )}
+
+          <div
+            style={{
+              width: "1px",
+              height: "18px",
+              background: "var(--color-border)",
+              margin: "0 4px",
+            }}
+          />
+
           <ToolbarButton
             icon={Printer}
             label="Print"
@@ -85,9 +157,9 @@ export function ReportPreviewPanel({ reportId }: ReportPreviewPanelProps) {
           />
           <ToolbarButton
             icon={Download}
-            label="PDF"
+            label={downloading ? "Generating..." : "PDF"}
             variant="primary"
-            onClick={() => toast("PDF export coming in Phase 2", { description: meta.title })}
+            onClick={handleDownloadPDF}
           />
           <ToolbarButton
             icon={Share2}
@@ -107,7 +179,14 @@ export function ReportPreviewPanel({ reportId }: ReportPreviewPanelProps) {
       >
         {/* Centered sheet so reports don't stretch absurdly wide on huge screens,
             while still using far more width than the old 288px panel. */}
-        <div style={{ maxWidth: 920, margin: "0 auto" }}>
+        <div
+          ref={reportRef}
+          style={{
+            maxWidth: isFullWidth ? "100%" : 920,
+            margin: "0 auto",
+            transition: "max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
           <Report />
         </div>
       </div>
