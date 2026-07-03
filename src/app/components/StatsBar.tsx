@@ -68,33 +68,37 @@ export function StatsBar({ co2, earnings, byMaterial, riders }: StatsBarProps) {
       <div
         role="region"
         aria-label="Live map statistics"
-        className="flex-shrink-0 w-full"
+        className="absolute z-[400] rounded-xl border flex items-center"
         style={{
-          height: "var(--statsbar-height)",
-          background: "var(--card)",
-          borderTop: "1px solid var(--border)",
-          display: "flex",
-          alignItems: "center",
+          height: 52,
+          bottom: 16,
+          left: "calc(var(--sidebar-width) + 24px)",
+          right: 24,
+          background: "rgba(255, 255, 255, 0.8)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          borderColor: "rgba(226, 232, 240, 0.8)",
+          boxShadow: "var(--shadow-glass)",
           gap: 4,
-          padding: "6px 8px",
+          padding: "4px 8px",
           fontFamily: "var(--font-sans)",
         }}
       >
         {/* Live map indicator */}
         <div
-          className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-md"
-          style={{ background: "var(--muted)" }}
+          className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+          style={{ background: "rgba(241, 245, 249, 0.8)" }}
         >
           <Activity size={12} color="var(--danger-600)" aria-hidden="true" />
           <span
-            className="text-[10px] font-bold uppercase tracking-wider"
+            className="text-[9px] font-bold uppercase tracking-wider"
             style={{ color: "var(--text-secondary)", letterSpacing: "0.06em" }}
           >
             Live Map
           </span>
         </div>
 
-        <div className="w-px h-8 flex-shrink-0" style={{ background: "var(--border)" }} />
+        <div className="w-px h-6 flex-shrink-0 mx-1" style={{ background: "var(--border)" }} />
 
         {tiles.map(tile => (
           <MetricTile

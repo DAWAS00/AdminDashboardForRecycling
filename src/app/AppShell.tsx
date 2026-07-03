@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from "react-router";
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Plus } from "lucide-react";
 import type { ViewId } from "./types";
 import { useRiders } from "../hooks/useRiders";
@@ -11,6 +11,7 @@ import { useHeatmapStore } from "../stores/heatmapStore";
 import { LeftSidebar } from "./components/LeftSidebar";
 import { StatsBar } from "./components/StatsBar";
 import { CommandPalette } from "./components/CommandPalette";
+import { TopBar } from "./components/TopBar";
 
 const PATH_TO_VIEW: Record<string, ViewId> = {
   "/":                 "map",
@@ -19,6 +20,8 @@ const PATH_TO_VIEW: Record<string, ViewId> = {
   "/partners":         "partners",
   "/reports":          "reports",
   "/report-requests":  "report-requests",
+  "/dispatch":         "dispatch",
+  "/users":            "users",
 };
 
 const VIEW_TITLE: Record<ViewId, string> = {
@@ -28,12 +31,15 @@ const VIEW_TITLE: Record<ViewId, string> = {
   partners:         "Partners & Rewards",
   reports:          "Reports",
   "report-requests": "Report Requests",
+  dispatch:         "Order Dispatch",
+  users:            "User Management",
 };
 
 export function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const activeView = PATH_TO_VIEW[location.pathname] ?? "map";
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   const {
     data: riders = [],
@@ -66,6 +72,8 @@ export function AppShell() {
     if (activeView === "hubs")    return `${hubs.filter(h => h.active).length} active hubs · ${hubs.filter(h => h.status === "ready").length} ready to ship`;
     if (activeView === "partners") return "Manage partner tiers, contracts, and rewards";
     if (activeView === "report-requests") return "Review, fulfill, and track client report requests";
+    if (activeView === "dispatch") return "Assign, reassign, and monitor all active orders";
+    if (activeView === "users")    return "Approve suppliers, manage drivers";
     return "";
   }, [activeView, riders, hubs]);
 
@@ -73,6 +81,7 @@ export function AppShell() {
     const paths: Record<ViewId, string> = {
       map: "/", heatmap: "/heatmap", hubs: "/hubs", partners: "/partners", reports: "/reports",
       "report-requests": "/report-requests",
+      dispatch: "/dispatch", users: "/users",
     };
     useFleetStore.getState().reset();
     useHubStore.getState().reset();
@@ -120,42 +129,58 @@ export function AppShell() {
 
   if (ridersLoading || hubsLoading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "var(--color-neutral-950)", color: "var(--color-neutral-400)", fontFamily: "var(--font-sans)", fontSize: 15, gap: 12 }}>
-        <div style={{ width: 20, height: 20, border: "2px solid var(--color-brand-600)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-        Connecting to Supabase…
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="size-full flex" style={{ fontFamily: "var(--font-sans)", background: "var(--color-surface)" }}>
+        <LeftSidebar activeNav="map" onNav={() => {}} />
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="bg-white border-b border-border flex items-center justify-between px-6 py-3 flex-shrink-0" style={{ height: 60 }}>
+            <div className="h-4 w-40 bg-neutral-100 animate-pulse rounded" />
+            <div className="h-8 w-64 bg-neutral-100 animate-pulse rounded-full" />
+            <div className="h-8 w-24 bg-neutral-100 animate-pulse rounded-lg" />
+          </header>
+          <div className="flex-1 flex flex-col items-center justify-center p-6 bg-surface">
+            <div className="w-6 h-6 border-2 border-brand-600 border-t-transparent rounded-full animate-spin" />
+            <span className="mt-3 text-xs text-muted-foreground font-semibold">Connecting to Supabase…</span>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="size-full flex" style={{ fontFamily: "var(--font-sans)", background: "var(--color-neutral-50)" }}>
+    <div className="size-full flex" style={{ fontFamily: "var(--font-sans)", background: "var(--color-surface)" }}>
+      {/* Dynamic light-mode sidebar */}
       <LeftSidebar activeNav={activeView} onNav={handleNav} />
 
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="bg-white border-b flex items-center justify-between px-5 py-3 flex-shrink-0" style={{ borderColor: "var(--color-border)" }}>
+      <div className="flex-1 flex flex-col min-w-0 relative">
+        {/* TopBar with breadcrumbs, search, export and user avatar */}
+        <TopBar activeView={activeView} onSearchClick={() => setCommandPaletteOpen(true)} />
+
+        {/* View Header with Title and LIVE status badge */}
+        <div className="px-6 pt-5 pb-1 flex items-start justify-between flex-shrink-0 select-none">
           <div>
-            <h1 style={{ fontSize: 16, fontWeight: 700, color: "var(--color-neutral-900)" }}>{VIEW_TITLE[activeView]}</h1>
+            <h2 className="text-xl font-bold tracking-tight text-neutral-900" style={{ fontFamily: "var(--font-sans)" }}>
+              {VIEW_TITLE[activeView]}
+            </h2>
             {subtitle && (
-              <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex items-center gap-2 mt-1">
                 <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: "var(--color-brand-600)", animation: "pulse 2s ease-in-out infinite" }} />
-                <span style={{ fontSize: 11, color: "var(--color-neutral-400)" }}>{subtitle}</span>
+                <span className="text-xs text-neutral-500 font-medium" style={{ fontFamily: "var(--font-sans)" }}>{subtitle}</span>
               </div>
             )}
           </div>
-          <div className="flex items-center gap-4">
+          
+          <div className="flex items-center gap-3">
+            {/* View Actions */}
             {activeView === "map" && (
               <button
                 aria-label={showFleetRadar ? "Disable fleet radar" : "Enable fleet radar"}
                 aria-pressed={showFleetRadar}
                 onClick={toggleFleetRadar}
-                className="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors border"
+                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-coral focus-visible:ring-offset-2"
                 style={{
                   background:  showFleetRadar ? "var(--color-brand-600)" : "white",
-                  color:       showFleetRadar ? "white" : "var(--color-neutral-500)",
+                  color:       showFleetRadar ? "white" : "var(--color-neutral-600)",
                   borderColor: "var(--color-border)",
-                  cursor:      "pointer",
                 }}
               >
                 Fleet Radar
@@ -164,40 +189,45 @@ export function AppShell() {
             {activeView === "hubs" && (
               <button
                 onClick={() => (placingHub ? cancelPlacing() : startPlacing())}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-coral focus-visible:ring-offset-2"
                 style={{
                   background: placingHub ? "var(--color-amber-50)" : "var(--color-brand-600)",
                   color:      placingHub ? "var(--color-amber-700)" : "white",
                   border:     "none",
-                  cursor:     "pointer",
                 }}
               >
-                <Plus size={14} />
+                <Plus size={13} />
                 {placingHub ? "Click map to place…" : "Add Hub"}
               </button>
             )}
-            <div className="text-right">
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--color-neutral-400)", letterSpacing: "0.08em" }}>LOCAL TIME</div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 14, fontWeight: 500, color: "var(--color-neutral-900)" }}>
+
+            {/* Local time badge */}
+            <div className="text-right border-l border-border pl-4 pr-1 hidden sm:block select-text">
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--color-neutral-400)", letterSpacing: "0.08em" }}>LOCAL TIME</div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 500, color: "var(--color-neutral-900)" }}>
                 {time.toLocaleTimeString("en-JO", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}
               </div>
             </div>
+
+            {/* Live Indicator Badge */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg" style={{ background: "var(--color-brand-50)" }}>
               <span className="inline-block w-2 h-2 rounded-full" style={{ background: "var(--color-brand-600)", animation: "pulse 2s ease-in-out infinite" }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--color-brand-600)" }}>LIVE</span>
+              <span className="text-[10px]" style={{ fontWeight: 700, color: "var(--color-brand-600)" }}>LIVE</span>
             </div>
           </div>
-        </header>
+        </div>
 
-        {/* Route content */}
+        {/* Route content outlet */}
         <div className="flex flex-1 min-h-0">
           <Outlet />
         </div>
 
+        {/* StatsBar */}
         <StatsBar co2={totals.co2} earnings={totals.earnings} byMaterial={totals.byMaterial} riders={riders} />
       </div>
 
-      <CommandPalette onNav={handleNav} />
+      {/* Controlled CommandPalette */}
+      <CommandPalette onNav={handleNav} open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
 
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }

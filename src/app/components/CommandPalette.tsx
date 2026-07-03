@@ -5,6 +5,8 @@ import type { ViewId } from "../types";
 
 interface CommandPaletteProps {
   onNav: (view: ViewId) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 interface CommandItem {
@@ -15,9 +17,19 @@ interface CommandItem {
   action: () => void;
 }
 
-export function CommandPalette({ onNav }: CommandPaletteProps) {
-  const [open, setOpen] = useState(false);
+export function CommandPalette({ onNav, open: controlledOpen, onOpenChange }: CommandPaletteProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [query, setQuery] = useState("");
+
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = (val: boolean | ((o: boolean) => boolean)) => {
+    const next = typeof val === "function" ? val(open) : val;
+    if (onOpenChange) {
+      onOpenChange(next);
+    } else {
+      setInternalOpen(next);
+    }
+  };
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -29,7 +41,9 @@ export function CommandPalette({ onNav }: CommandPaletteProps) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controlledOpen]);
+
 
   const navigate = (view: ViewId) => {
     onNav(view);

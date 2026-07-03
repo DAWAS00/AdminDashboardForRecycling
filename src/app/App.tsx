@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Plus } from "lucide-react";
 
 import type { Hub } from "./types";
@@ -20,6 +20,7 @@ import { LiveMapLayer } from "./components/LiveMapLayer";
 import { RiderPanel } from "./components/RiderPanel";
 import { HeatMapLayer } from "./components/HeatMapLayer";
 import { HeatMapPanel } from "./components/HeatMapPanel";
+import { TimelineSlider } from "./components/heatmap/TimelineSlider";
 import { HubsMapLayer } from "./components/HubsMapLayer";
 import { HubsPanel } from "./components/HubsPanel";
 import { AddHubModal } from "./components/AddHubModal";
@@ -28,6 +29,9 @@ import { PartnersView } from "./components/partners/PartnersView";
 import { RouteLayer } from "./components/RouteLayer";
 import { ReportsScreen } from "./components/reports/ReportsScreen";
 import { CommandPalette } from "./components/CommandPalette";
+import { DispatchView } from "./components/dispatch/DispatchView";
+import { UsersView } from "./components/users/UsersView";
+import { useNotifications } from "../hooks/useNotifications";
 
 import { useState } from "react";
 import type { ViewId } from "./types";
@@ -61,6 +65,41 @@ export default function App() {
   const setHeatMapViewMode = useHeatmapStore((s) => s.setViewMode);
   const materialFilter    = useHeatmapStore((s) => s.materialFilter);
   const setMaterialFilter = useHeatmapStore((s) => s.setMaterialFilter);
+  const timeOfDay         = useHeatmapStore((s) => s.timeOfDay);
+
+  // Dynamic simulation data that changes based on Morning, Afternoon, and Evening collection flows
+  const adjustedDistricts = useMemo(() => {
+    return DISTRICTS.map((d) => {
+      let multiplier = 1.0;
+      if (timeOfDay === "morning") {
+        // Morning peak hours focus on corporate & office districts (Shmeisani, Sweifieh, University)
+        multiplier = ["shmeisani", "sweifieh", "tlaa_ali", "university"].includes(d.id) ? 1.25 : 0.7;
+      } else if (timeOfDay === "evening") {
+        // Evening peak hours focus on dining, restaurant & retail hubs (Downtown, Abdoun, 8th Circle)
+        multiplier = ["downtown", "abdoun", "eighth_circle"].includes(d.id) ? 1.35 : 0.65;
+      }
+      
+      const newAchieved = Math.min(d.co2Potential, Math.round(d.co2Achieved * multiplier));
+      const newOrders = Math.max(1, Math.round(d.orderCount * multiplier));
+
+      // Adjust material breakdowns accordingly
+      const newBreakdown = { ...d.materialBreakdown };
+      Object.keys(newBreakdown).forEach((key) => {
+        const mat = newBreakdown[key];
+        newBreakdown[key] = {
+          ...mat,
+          achieved: Math.min(mat.potential, Math.round(mat.achieved * multiplier)),
+        };
+      });
+
+      return {
+        ...d,
+        co2Achieved: newAchieved,
+        orderCount: newOrders,
+        materialBreakdown: newBreakdown,
+      };
+    });
+  }, [timeOfDay]);
 
   // Animation store
   const activeRoute           = useAnimationStore((s) => s.activeRoute);
@@ -69,6 +108,7 @@ export default function App() {
   const completeTrip          = useAnimationStore((s) => s.completeTrip);
   const completedTrips        = useAnimationStore((s) => s.completedTrips);
 
+  const { broadcast } = useNotifications();
   const time = useClock();
 
   const handleOrderClick = async (riderId: string, orderId: string) => {
@@ -153,19 +193,25 @@ export default function App() {
   }
 
   const viewTitle: Record<ViewId, string> = {
-    map:      "Live Operations Map",
-    heatmap:  "CO₂ Savings Heat Map",
-    hubs:     "Collection Hub Management",
-    partners: "Partners & Rewards",
-    reports:  "Reports",
+    map:             "Live Operations Map",
+    heatmap:         "CO₂ Savings Heat Map",
+    hubs:            "Collection Hub Management",
+    partners:        "Partners & Rewards",
+    reports:         "Reports",
+    "report-requests": "Report Requests",
+    dispatch:        "Order Dispatch",
+    users:           "User Management",
   };
 
   const viewSubtitle: Record<ViewId, string> = {
-    map:      `Amman, Jordan — tracking ${riders.filter((r) => r.status !== "idle").length} active riders`,
-    heatmap:  "District-level CO₂ savings potential across Amman",
-    hubs:     `${hubs.filter((h) => h.active).length} active hubs · ${hubs.filter((h) => h.status === "ready").length} ready to ship`,
-    partners: "Manage partner tiers, contracts, and rewards",
-    reports:  "",
+    map:             `Amman, Jordan — tracking ${riders.filter((r) => r.status !== "idle").length} active riders`,
+    heatmap:         "District-level CO₂ savings potential across Amman",
+    hubs:            `${hubs.filter((h) => h.active).length} active hubs · ${hubs.filter((h) => h.status === "ready").length} ready to ship`,
+    partners:        "Manage partner tiers, contracts, and rewards",
+    reports:         "",
+    "report-requests": "",
+    dispatch:        "Assign, reassign, and monitor all active orders",
+    users:           "Approve suppliers, manage drivers",
   };
 
   return (
@@ -192,6 +238,24 @@ export default function App() {
             )}
           </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={async () => {
+                const msg = window.prompt("Broadcast message to all drivers:");
+                if (!msg) return;
+                try {
+                  await broadcast("driver", "Dwaar Operations Alert", msg, "system");
+                } catch (e) {
+                  console.error("Broadcast failed:", e);
+                }
+              }}
+              style={{
+                padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 600,
+                border: "1px solid var(--color-border)", background: "white",
+                color: "var(--color-neutral-500)", cursor: "pointer",
+              }}
+            >
+              📢 Broadcast
+            </button>
             {activeView === "map" && (
               <button
                 aria-label={showFleetRadar ? "Disable fleet radar" : "Enable fleet radar"}
@@ -266,7 +330,7 @@ export default function App() {
             {activeView === "heatmap" && (
               <>
                 <HeatMapLayer
-                  districts={DISTRICTS}
+                  districts={adjustedDistricts}
                   selectedId={selectedDistrict}
                   onSelect={toggleDistrict}
                   viewMode={heatMapViewMode}
@@ -277,6 +341,7 @@ export default function App() {
                   showDensityHeat={heatMapViewMode === "demand"}
                   showHubCoverage={heatMapViewMode === "hubs"}
                 />
+                <TimelineSlider />
                 <div className="absolute top-3 left-3 z-[500] px-3 py-2 rounded-lg" style={{ background: "white", boxShadow: "0 1px 6px rgba(0,0,0,0.1)" }}>
                   <div style={{ fontFamily: "var(--font-sans)", fontSize: 10, fontWeight: 700, color: "var(--color-neutral-400)", letterSpacing: "0.08em", marginBottom: 6 }}>CO₂ SAVINGS GAP</div>
                   {[
@@ -329,6 +394,8 @@ export default function App() {
 
             {activeView === "partners" && <PartnersView />}
             {activeView === "reports" && <ReportsScreen />}
+            {activeView === "dispatch" && <DispatchView riders={riders} />}
+            {activeView === "users" && <UsersView />}
           </div>
 
           {activeView === "map" && (
@@ -345,7 +412,7 @@ export default function App() {
           )}
           {activeView === "heatmap" && (
             <HeatMapPanel
-              districts={DISTRICTS}
+              districts={adjustedDistricts}
               selectedId={selectedDistrict}
               onSelect={toggleDistrict}
               viewMode={heatMapViewMode}

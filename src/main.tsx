@@ -9,6 +9,8 @@ import { HubsView }     from "./app/views/HubsView.tsx";
 import { PartnersView } from "./app/components/partners/PartnersView.tsx";
 import { ReportsScreen } from "./app/components/reports/ReportsScreen.tsx";
 import { ReportRequestsView } from "./features/report-requests/ReportRequestsView.tsx";
+import { DispatchView } from "./app/components/dispatch/DispatchView.tsx";
+import { UsersView } from "./app/components/users/UsersView.tsx";
 import "./styles/index.css";
 import "leaflet/dist/leaflet.css";
 
@@ -32,6 +34,8 @@ const router = createBrowserRouter([
       { path: "partners",    element: <PartnersView /> },
       { path: "reports",          element: <ReportsScreen /> },
       { path: "report-requests",  element: <ReportRequestsView /> },
+      { path: "dispatch",         element: <DispatchView /> },
+      { path: "users",            element: <UsersView /> },
     ],
   },
 ]);
